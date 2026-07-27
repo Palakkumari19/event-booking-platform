@@ -8,6 +8,7 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         ATTENDEE = "ATTENDEE", "Attendee"
         ORGANIZER = "ORGANIZER", "Organizer"
+        ADMIN = "ADMIN", "Admin"
 
     username = None
 
