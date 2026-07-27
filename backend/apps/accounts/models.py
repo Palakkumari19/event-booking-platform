@@ -8,7 +8,6 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         ATTENDEE = "ATTENDEE", "Attendee"
         ORGANIZER = "ORGANIZER", "Organizer"
-        ADMIN = "ADMIN", "Admin"
 
     username = None
 
@@ -20,8 +19,6 @@ class User(AbstractUser):
         default=Role.ATTENDEE,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
-
     updated_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = "email"
@@ -31,4 +28,4 @@ class User(AbstractUser):
     objects = UserManager()
 
     def __str__(self):
-        return f"{self.email} ({self.role})"
+        return self.email
