@@ -1,8 +1,10 @@
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.accounts.models import User
-from apps.venues.models import Venue
+from apps.venues.models import Venue, Section
 
 
 class Event(models.Model):
@@ -74,3 +76,50 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class EventSection(models.Model):
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="event_sections",
+    )
+
+    section = models.ForeignKey(
+        Section,
+        on_delete=models.CASCADE,
+        related_name="event_sections",
+    )
+
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+    )
+
+    class Meta:
+        ordering = ["section__display_order"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event", "section"],
+                name="unique_section_per_event",
+            )
+        ]
+
+    def clean(self):
+        if self.section.venue_id != self.event.venue_id:
+            raise ValidationError(
+                "Selected section does not belong to the event venue."
+            )
+
+        if self.price <= Decimal("0.00"):
+            raise ValidationError(
+                {"price": "Price must be greater than zero."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.event.title} - {self.section.name}"

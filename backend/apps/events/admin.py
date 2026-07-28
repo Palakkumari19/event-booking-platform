@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Event
+from .models import Event, EventSection
 
 
 @admin.register(Event)
@@ -27,4 +27,28 @@ class EventAdmin(admin.ModelAdmin):
 
     ordering = (
         "start_time",
+    )
+
+
+@admin.register(EventSection)
+class EventSectionAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "event",
+        "section",
+        "price",
+    )
+
+    search_fields = (
+        "event__title",
+        "section__name",
+    )
+
+    list_filter = (
+        "event",
+    )
+
+    ordering = (
+        "event",
+        "section",
     )
