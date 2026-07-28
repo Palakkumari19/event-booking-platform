@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.events.models import Event
@@ -40,6 +41,8 @@ class Booking(models.Model):
     booked_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        ordering = ["-booked_at"]
+
         constraints = [
             models.UniqueConstraint(
                 fields=["event", "seat"],
@@ -53,6 +56,28 @@ class Booking(models.Model):
                 "Selected seat does not belong to the event venue."
             )
 
+        if not self.seat.is_active:
+            raise ValidationError(
+                {"seat": "This seat is inactive."}
+            )
+
+        if self.event.status != Event.Status.PUBLISHED:
+            raise ValidationError(
+                "Bookings are only allowed for published events."
+            )
+
+        now = timezone.now()
+
+        if now < self.event.booking_start:
+            raise ValidationError(
+                "Booking has not opened yet."
+            )
+
+        if now > self.event.booking_end:
+            raise ValidationError(
+                "Booking has already closed."
+            )
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
@@ -61,5 +86,5 @@ class Booking(models.Model):
         return (
             f"{self.user.email} | "
             f"{self.event.title} | "
-            f"{self.seat.row}{self.seat.seat_number}"
+            f"{self.seat}"
         )
