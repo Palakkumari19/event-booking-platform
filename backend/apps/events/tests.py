@@ -2,11 +2,11 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
-from apps.events.models import Event
-from apps.venues.models import Venue
+from apps.events.models import Event, EventSection
+from apps.venues.models import Section, Venue
 
 
-class EventListAPITest(TestCase):
+class EventAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
 
@@ -27,7 +27,13 @@ class EventListAPITest(TestCase):
             postal_code="560001",
         )
 
-        Event.objects.create(
+        self.section = Section.objects.create(
+            venue=self.venue,
+            name="VIP",
+            display_order=1,
+        )
+
+        self.event = Event.objects.create(
             organizer=self.organizer,
             venue=self.venue,
             title="Published Event",
@@ -39,21 +45,23 @@ class EventListAPITest(TestCase):
             status=Event.Status.PUBLISHED,
         )
 
-        Event.objects.create(
-            organizer=self.organizer,
-            venue=self.venue,
-            title="Draft Event",
-            description="Hidden",
-            start_time="2027-01-11T10:00:00Z",
-            end_time="2027-01-11T12:00:00Z",
-            booking_start="2026-12-01T10:00:00Z",
-            booking_end="2027-01-10T10:00:00Z",
-            status=Event.Status.DRAFT,
+        EventSection.objects.create(
+            event=self.event,
+            section=self.section,
+            price=8000,
         )
 
-    def test_only_published_events_are_returned(self):
+    def test_event_list(self):
         response = self.client.get("/api/events/")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["title"], "Published Event")
+
+    def test_event_detail(self):
+        response = self.client.get(
+            f"/api/events/{self.event.id}/"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["title"], "Published Event")
+        self.assertEqual(len(response.data["sections"]), 1)
