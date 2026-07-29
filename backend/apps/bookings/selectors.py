@@ -1,5 +1,4 @@
 from apps.bookings.models import Booking
-from apps.events.models import Event
 from apps.venues.models import Seat
 
 
@@ -60,3 +59,16 @@ def get_event_seats(event):
         )
 
     return response
+
+
+def get_user_bookings(user):
+    return (
+        Booking.objects.filter(user=user)
+        .select_related(
+            "event",
+            "event__venue",
+            "seat",
+            "seat__section",
+        )
+        .order_by("-booked_at")
+    )
