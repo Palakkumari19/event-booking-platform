@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -16,7 +17,6 @@ class BookingService:
     def create_booking(user, event_id, seat_id):
 
         try:
-            # 🔒 Lock the event row until this transaction finishes
             event = (
                 Event.objects
                 .select_for_update()
@@ -69,16 +69,23 @@ class BookingService:
             )
 
         try:
-            return Booking.objects.create(
+            booking = Booking.objects.create(
                 user=user,
                 event=event,
                 seat=seat,
+            )
+
+        except DjangoValidationError:
+            raise ValidationError(
+                f"Seat {seat.row}{seat.seat_number} has already been booked."
             )
 
         except IntegrityError:
             raise ValidationError(
                 "Seat has just been booked by another user."
             )
+
+        return booking
 
     @staticmethod
     @transaction.atomic
