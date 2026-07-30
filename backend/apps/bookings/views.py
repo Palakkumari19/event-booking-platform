@@ -70,3 +70,20 @@ class MyBookingsView(APIView):
         )
 
         return Response(serializer.data)
+
+
+class CancelBookingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, booking_id):
+
+        BookingService.cancel_booking(
+            request.user,
+            booking_id,
+        )
+
+        return Response(
+            {
+                "message": "Booking cancelled successfully."
+            }
+        )

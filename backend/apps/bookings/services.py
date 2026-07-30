@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.events.models import Event
 from apps.venues.models import Seat
@@ -56,10 +56,35 @@ class BookingService:
                 f"Seat {seat.row}{seat.seat_number} has already been booked."
             )
 
-        booking = Booking.objects.create(
+        return Booking.objects.create(
             user=user,
             event=event,
             seat=seat,
         )
+
+    @staticmethod
+    @transaction.atomic
+    def cancel_booking(user, booking_id):
+
+        try:
+            booking = Booking.objects.select_related(
+                "user"
+            ).get(id=booking_id)
+
+        except Booking.DoesNotExist:
+            raise ValidationError("Booking not found.")
+
+        if booking.user != user:
+            raise PermissionDenied(
+                "You cannot cancel someone else's booking."
+            )
+
+        if booking.status == Booking.Status.CANCELLED:
+            raise ValidationError(
+                "Booking is already cancelled."
+            )
+
+        booking.status = Booking.Status.CANCELLED
+        booking.save(update_fields=["status"])
 
         return booking

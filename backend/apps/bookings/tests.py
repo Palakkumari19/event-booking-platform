@@ -16,9 +16,16 @@ class BookingAPITest(TestCase):
             last_name="User",
         )
 
-    def test_requires_authentication(self):
+    def test_my_bookings_requires_authentication(self):
         response = self.client.get(
             "/api/bookings/my-bookings/"
+        )
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_cancel_requires_authentication(self):
+        response = self.client.patch(
+            "/api/bookings/1/cancel/"
         )
 
         self.assertEqual(response.status_code, 401)
