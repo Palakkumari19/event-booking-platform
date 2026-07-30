@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -16,10 +16,17 @@ class BookingService:
     def create_booking(user, event_id, seat_id):
 
         try:
-            event = Event.objects.select_related("venue").get(
-                id=event_id,
-                status=Event.Status.PUBLISHED,
+            # 🔒 Lock the event row until this transaction finishes
+            event = (
+                Event.objects
+                .select_for_update()
+                .select_related("venue")
+                .get(
+                    id=event_id,
+                    status=Event.Status.PUBLISHED,
+                )
             )
+
         except Event.DoesNotExist:
             raise ValidationError("Event not found.")
 
@@ -32,10 +39,15 @@ class BookingService:
             raise ValidationError("Booking window has closed.")
 
         try:
-            seat = Seat.objects.select_related("section").get(
-                id=seat_id,
-                is_active=True,
+            seat = (
+                Seat.objects
+                .select_related("section")
+                .get(
+                    id=seat_id,
+                    is_active=True,
+                )
             )
+
         except Seat.DoesNotExist:
             raise ValidationError("Seat not found.")
 
@@ -56,11 +68,17 @@ class BookingService:
                 f"Seat {seat.row}{seat.seat_number} has already been booked."
             )
 
-        return Booking.objects.create(
-            user=user,
-            event=event,
-            seat=seat,
-        )
+        try:
+            return Booking.objects.create(
+                user=user,
+                event=event,
+                seat=seat,
+            )
+
+        except IntegrityError:
+            raise ValidationError(
+                "Seat has just been booked by another user."
+            )
 
     @staticmethod
     @transaction.atomic

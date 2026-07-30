@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.accounts.models import User
@@ -46,9 +47,15 @@ class Booking(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["event", "seat"],
-                name="unique_seat_booking_per_event",
-            )
-        ]
+                condition=Q(
+                    status__in=[
+                        "PENDING",
+                        "CONFIRMED",
+                    ]
+                ),
+                name="unique_active_booking_per_event",
+    )
+]
 
     def clean(self):
         if self.seat.section.venue_id != self.event.venue_id:
