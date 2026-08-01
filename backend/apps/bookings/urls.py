@@ -5,6 +5,7 @@ from .views import (
     CancelBookingView,
     MyBookingsView,
     SeatAvailabilityView,
+    SeatHoldView,
 )
 
 urlpatterns = [
@@ -30,5 +31,11 @@ urlpatterns = [
         "<int:booking_id>/cancel/",
         CancelBookingView.as_view(),
         name="cancel-booking",
+    ),
+
+    path(
+        "hold/",
+        SeatHoldView.as_view(),
+        name="seat-hold",
     ),
 ]

@@ -20,6 +20,11 @@ class BookingCreateSerializer(serializers.Serializer):
     seat = serializers.IntegerField()
 
 
+class SeatHoldSerializer(serializers.Serializer):
+    event = serializers.IntegerField()
+    seat = serializers.IntegerField()
+
+
 class BookingResponseSerializer(serializers.ModelSerializer):
     event = serializers.CharField(source="event.title")
     seat = serializers.SerializerMethodField()
@@ -28,7 +33,6 @@ class BookingResponseSerializer(serializers.ModelSerializer):
         model = Booking
         fields = (
             "id",
-            "booking_reference",
             "status",
             "event",
             "seat",

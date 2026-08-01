@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-
+from django.conf import settings
+from .redis import SeatHoldCache
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.events.models import Event
@@ -113,3 +114,56 @@ class BookingService:
         booking.save(update_fields=["status"])
 
         return booking
+
+
+    @staticmethod
+    def hold_seat(user, event_id, seat_id):
+
+        try:
+            event = Event.objects.get(
+                id=event_id,
+                status=Event.Status.PUBLISHED,
+            )
+        except Event.DoesNotExist:
+            raise ValidationError("Event not found.")
+
+        try:
+            seat = Seat.objects.select_related("section").get(
+                id=seat_id,
+                is_active=True,
+            )
+        except Seat.DoesNotExist:
+            raise ValidationError("Seat not found.")
+
+        if seat.section.venue_id != event.venue_id:
+            raise ValidationError(
+                "Seat does not belong to this event."
+            )
+
+        if Booking.objects.filter(
+            event=event,
+            seat=seat,
+            status__in=[
+                Booking.Status.PENDING,
+                Booking.Status.CONFIRMED,
+            ],
+        ).exists():
+            raise ValidationError(
+                "Seat already booked."
+            )
+
+        if SeatHoldCache.is_held(event.id, seat.id):
+            raise ValidationError(
+                "Seat is currently held."
+            )
+
+        SeatHoldCache.hold_seat(
+            event.id,
+            seat.id,
+            user.id,
+        )
+
+        return {
+            "message": "Seat held successfully.",
+            "expires_in": settings.REDIS_SEAT_HOLD_TIMEOUT,
+        }

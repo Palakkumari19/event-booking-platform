@@ -15,6 +15,7 @@ from .serializers import (
     BookingCreateSerializer,
     BookingResponseSerializer,
     MyBookingSerializer,
+    SeatHoldSerializer,
 )
 from .services import BookingService
 
@@ -87,3 +88,25 @@ class CancelBookingView(APIView):
                 "message": "Booking cancelled successfully."
             }
         )
+
+class SeatHoldView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = SeatHoldSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        data = BookingService.hold_seat(
+            request.user,
+            serializer.validated_data["event"],
+            serializer.validated_data["seat"],
+        )
+
+        return Response(data)
