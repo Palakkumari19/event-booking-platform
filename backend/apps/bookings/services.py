@@ -57,6 +57,21 @@ class BookingService:
                 "Selected seat does not belong to this event."
             )
 
+        holder = SeatHoldCache.holder(
+            event.id,
+            seat.id,
+        )
+
+        if holder is None:
+            raise ValidationError(
+                "Seat is not held."
+            )
+
+        if holder != user.id:
+            raise ValidationError(
+                "Seat is not held by you."
+            )
+
         if Booking.objects.filter(
             event=event,
             seat=seat,
@@ -66,10 +81,11 @@ class BookingService:
             ],
         ).exists():
             raise ValidationError(
-                f"Seat {seat.row}{seat.seat_number} has already been booked."
+                "Seat already booked."
             )
 
         try:
+
             booking = Booking.objects.create(
                 user=user,
                 event=event,
@@ -78,13 +94,18 @@ class BookingService:
 
         except DjangoValidationError:
             raise ValidationError(
-                f"Seat {seat.row}{seat.seat_number} has already been booked."
+                "Seat already booked."
             )
 
         except IntegrityError:
             raise ValidationError(
-                "Seat has just been booked by another user."
+                "Seat has just been booked."
             )
+
+        SeatHoldCache.release_seat(
+            event.id,
+            seat.id,
+        )
 
         return booking
 
