@@ -110,3 +110,19 @@ class SeatHoldView(APIView):
         )
 
         return Response(data)
+
+class SeatHoldStatusView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        event = request.query_params.get("event")
+        seat = request.query_params.get("seat")
+
+        return Response(
+            BookingService.hold_status(
+                int(event),
+                int(seat),
+            )
+        )

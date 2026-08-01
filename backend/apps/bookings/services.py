@@ -167,3 +167,22 @@ class BookingService:
             "message": "Seat held successfully.",
             "expires_in": settings.REDIS_SEAT_HOLD_TIMEOUT,
         }
+
+
+    @staticmethod
+    def hold_status(event_id, seat_id):
+
+        held = SeatHoldCache.is_held(
+            event_id,
+            seat_id,
+        )
+
+        ttl = SeatHoldCache.ttl(
+            event_id,
+            seat_id,
+        )
+
+        return {
+            "held": held,
+            "remaining_seconds": ttl,
+        }

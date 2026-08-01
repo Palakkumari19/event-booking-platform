@@ -6,6 +6,7 @@ from .views import (
     MyBookingsView,
     SeatAvailabilityView,
     SeatHoldView,
+    SeatHoldStatusView,
 )
 
 urlpatterns = [
@@ -37,5 +38,10 @@ urlpatterns = [
         "hold/",
         SeatHoldView.as_view(),
         name="seat-hold",
+    ),
+
+    path(
+        "hold-status/",
+        SeatHoldStatusView.as_view(),
     ),
 ]

@@ -29,3 +29,36 @@ class SeatHoldCache:
     @classmethod
     def is_held(cls, event_id, seat_id):
         return cls.holder(event_id, seat_id) is not None
+
+    @classmethod
+    def ttl(cls, event_id, seat_id):
+
+        client = cache.client.get_client(write=False)
+
+        key = f":1:{cls.key(event_id, seat_id)}"
+
+        ttl = client.ttl(key)
+
+        if ttl < 0:
+            return 0
+
+        return ttl
+
+    @classmethod
+    def all_held_seats(cls, event_id):
+
+        client = cache.client.get_client(write=False)
+
+        held = set()
+
+        pattern = f"*{cls.PREFIX}:{event_id}:*"
+
+        for key in client.scan_iter(match=pattern):
+
+            seat_id = int(
+                key.decode().split(":")[-1]
+            )
+
+            held.add(seat_id)
+
+        return held

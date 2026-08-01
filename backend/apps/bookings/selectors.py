@@ -1,6 +1,6 @@
 from apps.bookings.models import Booking
 from apps.venues.models import Seat
-
+from apps.bookings.redis import SeatHoldCache
 
 def get_event_seats(event):
     event_sections = (
@@ -18,6 +18,8 @@ def get_event_seats(event):
             ],
         ).values_list("seat_id", flat=True)
     )
+
+    held_seat_ids = SeatHoldCache.all_held_seats(event.id)
 
     response = []
 
@@ -42,7 +44,11 @@ def get_event_seats(event):
                     "status": (
                         "BOOKED"
                         if seat.id in booked_seat_ids
-                        else "AVAILABLE"
+                        else (
+                            "HELD"
+                            if seat.id in held_seat_ids
+                            else "AVAILABLE"
+                        )
                     ),
                 }
             )
