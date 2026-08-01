@@ -114,16 +114,23 @@ class BookingService:
     def cancel_booking(user, booking_id):
 
         try:
-            booking = Booking.objects.select_related(
-                "user"
-            ).get(id=booking_id)
+            booking = (
+                Booking.objects
+                .select_for_update()
+                .select_related(
+                    "event",
+                    "seat",
+                    "user",
+                )
+                .get(id=booking_id)
+            )
 
         except Booking.DoesNotExist:
             raise ValidationError("Booking not found.")
 
         if booking.user != user:
             raise PermissionDenied(
-                "You cannot cancel someone else's booking."
+                "You cannot cancel another user's booking."
             )
 
         if booking.status == Booking.Status.CANCELLED:
@@ -132,7 +139,13 @@ class BookingService:
             )
 
         booking.status = Booking.Status.CANCELLED
+
         booking.save(update_fields=["status"])
+
+        SeatHoldCache.release_seat(
+            booking.event.id,
+            booking.seat.id,
+        )
 
         return booking
 
@@ -178,6 +191,14 @@ class BookingService:
                 "Seat is currently held."
             )
 
+        # ----------------------------
+        # NEW CODE GOES HERE
+        # ----------------------------
+        if SeatHoldCache.held_by_user(user.id) >= 4:
+            raise ValidationError(
+                "Maximum of 4 seats can be held simultaneously."
+            )
+
         SeatHoldCache.hold_seat(
             event.id,
             seat.id,
@@ -187,23 +208,4 @@ class BookingService:
         return {
             "message": "Seat held successfully.",
             "expires_in": settings.REDIS_SEAT_HOLD_TIMEOUT,
-        }
-
-
-    @staticmethod
-    def hold_status(event_id, seat_id):
-
-        held = SeatHoldCache.is_held(
-            event_id,
-            seat_id,
-        )
-
-        ttl = SeatHoldCache.ttl(
-            event_id,
-            seat_id,
-        )
-
-        return {
-            "held": held,
-            "remaining_seconds": ttl,
         }
