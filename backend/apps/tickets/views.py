@@ -41,6 +41,11 @@ class TicketDetailView(APIView):
         except Exception:
             raise Http404
 
-        serializer = TicketDetailSerializer(ticket)
+        serializer = TicketDetailSerializer(
+            ticket,
+            context={
+                "request": request,
+            },
+        )
 
         return Response(serializer.data)

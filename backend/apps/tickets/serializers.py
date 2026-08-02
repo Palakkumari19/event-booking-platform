@@ -21,12 +21,16 @@ class TicketListSerializer(serializers.ModelSerializer):
         )
 
     def get_seat(self, obj):
-        return f"{obj.booking.seat.row}{obj.booking.seat.seat_number}"
+        return (
+            f"{obj.booking.seat.row}"
+            f"{obj.booking.seat.seat_number}"
+        )
 
 
 class TicketDetailSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()
     seat = serializers.SerializerMethodField()
+    qr_code = serializers.SerializerMethodField()
 
     class Meta:
         model = Ticket
@@ -53,3 +57,13 @@ class TicketDetailSerializer(serializers.ModelSerializer):
             "row": obj.booking.seat.row,
             "seat_number": obj.booking.seat.seat_number,
         }
+
+    def get_qr_code(self, obj):
+        request = self.context.get("request")
+
+        if not obj.qr_code:
+            return None
+
+        return request.build_absolute_uri(
+            obj.qr_code.url
+        )

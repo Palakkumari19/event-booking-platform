@@ -1,19 +1,33 @@
-import qrcode
-
+import json
 from io import BytesIO
 
-from django.core.files import File
+import qrcode
+from django.core.files.base import ContentFile
 
 
 def generate_qr(ticket):
 
+    qr_data = {
+        "ticket_number": ticket.ticket_number,
+        "ticket_id": ticket.id,
+        "booking_id": ticket.booking.id,
+        "event": ticket.booking.event.title,
+        "seat": (
+            f"{ticket.booking.seat.section.name}-"
+            f"{ticket.booking.seat.row}"
+            f"{ticket.booking.seat.seat_number}"
+        ),
+    }
+
     qr = qrcode.QRCode(
         version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=10,
         border=4,
     )
 
-    qr.add_data(ticket.ticket_number)
+    qr.add_data(json.dumps(qr_data))
+
     qr.make(fit=True)
 
     image = qr.make_image(
@@ -21,14 +35,16 @@ def generate_qr(ticket):
         back_color="white",
     )
 
-    stream = BytesIO()
+    buffer = BytesIO()
 
-    image.save(stream, format="PNG")
+    image.save(buffer, format="PNG")
+
+    filename = f"{ticket.ticket_number}.png"
 
     ticket.qr_code.save(
-        f"{ticket.ticket_number}.png",
-        File(stream),
+        filename,
+        ContentFile(buffer.getvalue()),
         save=False,
     )
 
-    stream.close()
+    buffer.close()
