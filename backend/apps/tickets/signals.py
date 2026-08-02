@@ -1,24 +1,5 @@
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+"""
+Ticket creation is triggered only after a successful payment.
 
-from apps.bookings.models import Booking
-
-from .models import Ticket
-from .services import TicketService
-
-
-@receiver(post_save, sender=Booking)
-def create_booking_ticket(
-    sender,
-    instance,
-    created,
-    **kwargs,
-):
-
-    if not created:
-        return
-
-    if hasattr(instance, "ticket"):
-        return
-
-    TicketService.create_ticket(instance)
+This file intentionally contains no active signals.
+"""

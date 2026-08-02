@@ -10,6 +10,7 @@ from rest_framework.exceptions import ValidationError
 from apps.bookings.models import Booking
 from apps.bookings.services import BookingService
 from apps.events.models import EventSection
+from apps.tickets.services import TicketService
 
 from .models import Payment
 from .selectors import get_payment_by_booking
@@ -122,8 +123,13 @@ class PaymentService:
             ]
         )
 
-        BookingService.confirm_booking(
+        booking = BookingService.confirm_booking(
             payment.booking
         )
+
+        if not hasattr(booking, "ticket"):
+            TicketService.create_ticket(
+                booking
+            )
 
         return payment
