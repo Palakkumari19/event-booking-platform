@@ -9,12 +9,12 @@ class TicketAdmin(admin.ModelAdmin):
     list_display = (
         "ticket_number",
         "booking",
+        "status",
         "issued_at",
-        "is_checked_in",
     )
 
     list_filter = (
-        "is_checked_in",
+        "status",
     )
 
     search_fields = (
