@@ -155,3 +155,6 @@ CACHES = {
 }
 
 REDIS_SEAT_HOLD_TIMEOUT = 300  # 5 minutes
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
