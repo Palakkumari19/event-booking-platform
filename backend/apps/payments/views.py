@@ -8,6 +8,7 @@ from .serializers import (
     CreateOrderSerializer,
     VerifyPaymentSerializer,
 )
+
 from .services import PaymentService
 
 
@@ -36,7 +37,6 @@ class CreateOrderView(APIView):
                 "amount": result["order"]["amount"],
                 "currency": result["order"]["currency"],
                 "key": settings.RAZORPAY_KEY_ID,
-                "payment_id": result["payment"].id,
             }
         )
 
@@ -62,7 +62,6 @@ class VerifyPaymentView(APIView):
         return Response(
             {
                 "message": "Payment verified successfully.",
-                "payment_id": payment.id,
                 "status": payment.status,
             }
         )

@@ -165,6 +165,28 @@ class BookingService:
         booking.status = Booking.Status.CONFIRMED
 
         booking.save(
+            update_fields=[
+                "status",
+            ]
+        )
+
+        return booking
+
+    @staticmethod
+    @transaction.atomic
+    def confirm_booking(booking):
+
+        if booking.status == Booking.Status.CONFIRMED:
+            return booking
+
+        if booking.status == Booking.Status.CANCELLED:
+            raise ValidationError(
+                "Cancelled bookings cannot be confirmed."
+            )
+
+        booking.status = Booking.Status.CONFIRMED
+
+        booking.save(
             update_fields=["status"]
         )
 

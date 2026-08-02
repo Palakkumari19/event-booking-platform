@@ -4,14 +4,15 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import transaction
+
 from rest_framework.exceptions import ValidationError
 
 from apps.bookings.models import Booking
+from apps.bookings.services import BookingService
 from apps.events.models import EventSection
 
 from .models import Payment
 from .selectors import get_payment_by_booking
-from apps.bookings.services import BookingService
 
 
 client = razorpay.Client(
@@ -47,7 +48,9 @@ class PaymentService:
                 "Booking not found."
             )
 
-        existing = get_payment_by_booking(booking)
+        existing = get_payment_by_booking(
+            booking
+        )
 
         if existing:
             raise ValidationError(
@@ -67,7 +70,6 @@ class PaymentService:
                     Decimal(amount) * 100
                 ),
                 "currency": "INR",
-                "payment_capture": 1,
             }
         )
 
