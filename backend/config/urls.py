@@ -10,6 +10,7 @@ urlpatterns = [
     path("api/events/", include("apps.events.urls")),
     path("api/bookings/", include("apps.bookings.urls")),
     path("api/tickets/", include("apps.tickets.urls")),
+    path("api/payments/", include("apps.payments.urls")),
 ]
 
 if settings.DEBUG:
