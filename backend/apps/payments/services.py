@@ -11,6 +11,7 @@ from apps.events.models import EventSection
 
 from .models import Payment
 from .selectors import get_payment_by_booking
+from apps.bookings.services import BookingService
 
 
 client = razorpay.Client(
@@ -80,3 +81,47 @@ class PaymentService:
             "payment": payment,
             "order": razorpay_order,
         }
+
+    @staticmethod
+    @transaction.atomic
+    def verify_payment(data):
+
+        try:
+            payment = Payment.objects.select_related(
+                "booking"
+            ).get(
+                razorpay_order_id=data["razorpay_order_id"]
+            )
+
+        except Payment.DoesNotExist:
+            raise ValidationError(
+                "Payment not found."
+            )
+
+        client.utility.verify_payment_signature(
+            {
+                "razorpay_order_id": data["razorpay_order_id"],
+                "razorpay_payment_id": data["razorpay_payment_id"],
+                "razorpay_signature": data["razorpay_signature"],
+            }
+        )
+
+        payment.razorpay_payment_id = data["razorpay_payment_id"]
+
+        payment.razorpay_signature = data["razorpay_signature"]
+
+        payment.status = Payment.Status.SUCCESS
+
+        payment.save(
+            update_fields=[
+                "razorpay_payment_id",
+                "razorpay_signature",
+                "status",
+            ]
+        )
+
+        BookingService.confirm_booking(
+            payment.booking
+        )
+
+        return payment
