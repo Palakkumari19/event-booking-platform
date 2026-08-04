@@ -1,7 +1,14 @@
 import streamlit as st
 
-st.title("Events")
 
-st.info(
-    "Coming soon."
-)
+def Events():
+
+    st.title("🎉 Events")
+
+    st.success(
+        "Authentication Successful!"
+    )
+
+    st.write(
+        "Events module coming next."
+    )

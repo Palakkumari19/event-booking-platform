@@ -1,19 +1,25 @@
 import streamlit as st
 
+from components.navbar import navbar
+from pages.Events import *
+from pages.Login import *
+from utils.session import initialize_session
+
+
 st.set_page_config(
     page_title="Event Booking Platform",
     page_icon="🎟️",
     layout="wide",
 )
 
-st.title("🎟️ Event Booking Platform")
+initialize_session()
 
-st.success("Frontend initialized successfully!")
+navbar()
 
-st.write(
-    """
-    Welcome to the Event Booking Platform.
+if st.session_state.authenticated:
 
-    Use the sidebar to navigate through the application.
-    """
-)
+    Events()
+
+else:
+
+    Login()

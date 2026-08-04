@@ -1,10 +1,18 @@
 import streamlit as st
 
+from utils.session import logout
+
 
 def navbar():
 
-    st.sidebar.title("Navigation")
+    st.sidebar.title("🎟️ Event Booking")
 
-    st.sidebar.info(
-        "Frontend under development."
-    )
+    if st.session_state.authenticated:
+
+        st.sidebar.success("Logged In")
+
+        if st.sidebar.button("Logout"):
+
+            logout()
+
+            st.rerun()
