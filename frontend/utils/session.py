@@ -1,29 +1,27 @@
 import streamlit as st
 
 
-DEFAULT_SESSION = {
+DEFAULTS = {
+    "authenticated": False,
     "access_token": None,
     "refresh_token": None,
-    "user": None,
-    "authenticated": False,
+    "selected_event": None,
+    "selected_seat": None,
 }
 
 
 def initialize_session():
-
-    for key, value in DEFAULT_SESSION.items():
+    for key, value in DEFAULTS.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
 
-def login(access, refresh):
-
-    st.session_state.access_token = access
-    st.session_state.refresh_token = refresh
+def login(access_token, refresh_token):
     st.session_state.authenticated = True
+    st.session_state.access_token = access_token
+    st.session_state.refresh_token = refresh_token
 
 
 def logout():
-
-    for key, value in DEFAULT_SESSION.items():
+    for key, value in DEFAULTS.items():
         st.session_state[key] = value

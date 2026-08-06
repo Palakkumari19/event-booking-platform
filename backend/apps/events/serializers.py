@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Event, EventSection
+from apps.venues.models import Seat
 
 
 class EventListSerializer(serializers.ModelSerializer):
@@ -58,4 +59,32 @@ class EventDetailSerializer(serializers.ModelSerializer):
             "booking_start",
             "booking_end",
             "sections",
+        )
+
+class SeatStatusSerializer(serializers.ModelSerializer):
+
+    section = serializers.CharField(
+        source="section.name",
+    )
+
+    status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Seat
+
+        fields = (
+            "id",
+            "section",
+            "row",
+            "seat_number",
+            "status",
+        )
+
+    def get_status(self, obj):
+
+        statuses = self.context["statuses"]
+
+        return statuses.get(
+            obj.id,
+            "AVAILABLE",
         )
