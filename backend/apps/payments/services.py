@@ -101,6 +101,67 @@ class PaymentService:
             "payment_link": payment_link,
         }
 
+
+    @staticmethod
+    @transaction.atomic
+    def check_payment_status(user, booking_id):
+
+        try:
+            booking = Booking.objects.select_related(
+                "event",
+                "seat",
+            ).get(
+                id=booking_id,
+                user=user,
+            )
+
+        except Booking.DoesNotExist:
+            raise ValidationError(
+                "Booking not found."
+            )
+
+        payment = get_payment_by_booking(
+            booking
+        )
+
+        if payment is None:
+            raise ValidationError(
+                "Payment not found."
+            )
+
+        payment_link = client.payment_link.fetch(
+            payment.razorpay_order_id
+        )
+
+        if payment_link["status"] != "paid":
+
+            return {
+                "paid": False,
+            }
+
+        payment.status = Payment.Status.SUCCESS
+
+        payment.save(
+            update_fields=["status"]
+        )
+
+        booking = BookingService.confirm_booking(
+            booking
+        )
+
+        if not hasattr(
+            booking,
+            "ticket",
+        ):
+            TicketService.create_ticket(
+                booking
+            )
+
+        return {
+        "paid": True,
+    }
+
+
     @staticmethod
     @transaction.atomic
     def verify_payment(data):

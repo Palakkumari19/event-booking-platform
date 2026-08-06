@@ -39,3 +39,18 @@ def verify_payment(
     )
 
     return response
+
+def check_payment_status(
+    booking_id,
+    token,
+):
+
+    response = client.post(
+        "/payments/status/",
+        {
+            "booking_id": booking_id,
+        },
+        token,
+    )
+
+    return response

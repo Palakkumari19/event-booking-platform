@@ -64,3 +64,22 @@ class VerifyPaymentView(APIView):
                 "status": payment.status,
             }
         )
+
+class CheckPaymentStatusView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        booking_id = request.data.get(
+            "booking_id"
+        )
+
+        result = (
+            PaymentService.check_payment_status(
+                request.user,
+                booking_id,
+            )
+        )
+
+        return Response(result)

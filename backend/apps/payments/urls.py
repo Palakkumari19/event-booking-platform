@@ -3,7 +3,9 @@ from django.urls import path
 from .views import (
     CreateOrderView,
     VerifyPaymentView,
+    CheckPaymentStatusView,
 )
+
 
 urlpatterns = [
     path(
@@ -15,5 +17,10 @@ urlpatterns = [
         "verify/",
         VerifyPaymentView.as_view(),
         name="verify-payment",
+    ),
+    path(
+        "status/",
+        CheckPaymentStatusView.as_view(),
+        name="payment-status",
     ),
 ]
