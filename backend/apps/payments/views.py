@@ -26,19 +26,18 @@ class CreateOrderView(APIView):
             raise_exception=True
         )
 
-        result = PaymentService.create_order(
+        result = PaymentService.create_payment_link(
             request.user,
             serializer.validated_data["booking_id"],
         )
 
         return Response(
-            {
-                "order_id": result["order"]["id"],
-                "amount": result["order"]["amount"],
-                "currency": result["order"]["currency"],
-                "key": settings.RAZORPAY_KEY_ID,
-            }
-        )
+        {
+            "payment_link": result["payment_link"]["short_url"],
+            "amount": result["payment_link"]["amount"],
+            "currency": result["payment_link"]["currency"],
+        }
+    )
 
 
 class VerifyPaymentView(APIView):

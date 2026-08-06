@@ -3,6 +3,7 @@ import streamlit as st
 from api.bookings import (
     get_event_seats,
     hold_seat,
+    create_booking,
 )
 from components.seat_grid import seat_grid
 from utils.helpers import (
@@ -125,5 +126,32 @@ if "selected_seat" in st.session_state:
         "Continue to Checkout ➜",
         use_container_width=True,
     ):
-        st.session_state.go_to_checkout = True
-        st.rerun()
+
+        booking_response = create_booking(
+            event["id"],
+            seat["id"],
+            st.session_state.access_token,
+        )
+
+        if booking_response.status_code == 201:
+
+            booking = booking_response.json()
+
+            st.session_state.booking = booking
+            st.session_state.booking_id = booking["id"]
+
+            st.session_state.go_to_checkout = True
+
+            st.rerun()
+
+        else:
+
+            try:
+                st.error(
+                    booking_response.json()
+                )
+
+            except Exception:
+                st.error(
+                    booking_response.text
+                )

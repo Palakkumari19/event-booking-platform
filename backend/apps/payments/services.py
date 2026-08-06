@@ -28,7 +28,7 @@ class PaymentService:
 
     @staticmethod
     @transaction.atomic
-    def create_order(user, booking_id):
+    def create_payment_link(user, booking_id):
 
         try:
             booking = (
@@ -37,6 +37,7 @@ class PaymentService:
                     "event",
                     "seat",
                     "seat__section",
+                    "user",
                 )
                 .get(
                     id=booking_id,
@@ -65,24 +66,39 @@ class PaymentService:
 
         amount = event_section.price
 
-        razorpay_order = client.order.create(
+        payment_link = client.payment_link.create(
             {
                 "amount": int(
                     Decimal(amount) * 100
                 ),
                 "currency": "INR",
+                "accept_partial": False,
+                "description": (
+                    f"{booking.event.title} - "
+                    f"{booking.seat.row}{booking.seat.seat_number}"
+                ),
+                "reference_id": f"BOOKING-{booking.id}",
+                "customer": {
+                    "name": booking.user.get_full_name()
+                    or booking.user.username,
+                    "email": booking.user.email,
+                },
+                "notify": {
+                    "sms": False,
+                    "email": False,
+                },
             }
         )
 
         payment = Payment.objects.create(
             booking=booking,
-            razorpay_order_id=razorpay_order["id"],
+            razorpay_order_id=payment_link["id"],
             amount=amount,
         )
 
         return {
             "payment": payment,
-            "order": razorpay_order,
+            "payment_link": payment_link,
         }
 
     @staticmethod

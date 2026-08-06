@@ -26,3 +26,21 @@ def hold_seat(event_id, seat_id, token):
     )
 
     return response
+
+
+def create_booking(
+    event_id,
+    seat_id,
+    token,
+):
+
+    response = client.post(
+        "/bookings/",
+        {
+            "event": event_id,
+            "seat": seat_id,
+        },
+        token,
+    )
+
+    return response
