@@ -44,3 +44,21 @@ def create_booking(
     )
 
     return response
+
+def get_my_bookings(token):
+    response = client.get(
+        "/bookings/my-bookings/",
+        token,
+    )
+
+    if response.status_code == 200:
+        return response.json()
+
+    return []
+
+def cancel_booking(booking_id, token):
+
+    return client.patch(
+        f"/bookings/{booking_id}/cancel/",
+        token,
+    )

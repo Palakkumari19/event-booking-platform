@@ -9,3 +9,15 @@ def login(email, password):
             "password": password,
         },
     )
+
+def get_current_user(token):
+
+    response = client.get(
+        "/auth/me/",
+        token,
+    )
+
+    if response.status_code == 200:
+        return response.json()
+
+    return None

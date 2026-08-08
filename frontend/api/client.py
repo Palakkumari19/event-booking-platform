@@ -46,4 +46,23 @@ class APIClient:
         )
 
 
+    def patch(
+        self,
+        endpoint,
+        token=None,
+    ):
+
+        headers = {}
+
+        if token:
+            headers["Authorization"] = (
+                f"Bearer {token}"
+            )
+
+        return requests.patch(
+            f"{self.base_url}{endpoint}",
+            headers=headers,
+        )
+
+
 client = APIClient()

@@ -5,7 +5,6 @@ def create_payment_link(
     booking_id,
     token,
 ):
-
     response = client.post(
         "/payments/create-order/",
         {
@@ -15,10 +14,24 @@ def create_payment_link(
     )
 
     if response.status_code == 200:
-
         return response.json()
 
     return None
+
+
+def check_payment_status(
+    booking_id,
+    token,
+):
+    response = client.post(
+        "/payments/status/",
+        {
+            "booking_id": booking_id,
+        },
+        token,
+    )
+
+    return response
 
 
 def verify_payment(
@@ -27,28 +40,12 @@ def verify_payment(
     signature,
     token,
 ):
-
     response = client.post(
         "/payments/verify/",
         {
             "razorpay_order_id": order_id,
             "razorpay_payment_id": payment_id,
             "razorpay_signature": signature,
-        },
-        token,
-    )
-
-    return response
-
-def check_payment_status(
-    booking_id,
-    token,
-):
-
-    response = client.post(
-        "/payments/status/",
-        {
-            "booking_id": booking_id,
         },
         token,
     )
