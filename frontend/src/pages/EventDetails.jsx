@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { getEvent } from "../api/events";
 
 function EventDetails() {
-  const { id } = useParams();
+  const { eventId } = useParams();
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ function EventDetails() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const data = await getEvent(id);
+        const data = await getEvent(eventId);
         setEvent(data);
       } catch (err) {
         console.error(err);
@@ -24,7 +24,7 @@ function EventDetails() {
     };
 
     fetchEvent();
-  }, [id]);
+  }, [eventId]);
 
   if (loading) {
     return (

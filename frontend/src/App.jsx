@@ -15,10 +15,12 @@ import EventDetails from "./pages/EventDetails";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
+import SeatSelection from "./pages/SeatSelection";
 
 export default function App() {
   return (
     <BrowserRouter>
+
       <AuthProvider>
 
         <Navbar />
@@ -45,8 +47,13 @@ export default function App() {
           />
 
           <Route
-            path="/events/:id"
+            path="/events/:eventId"
             element={<EventDetails />}
+          />
+
+          <Route
+            path="/events/:eventId/seats"
+            element={<SeatSelection />}
           />
 
           <Route
@@ -91,6 +98,7 @@ export default function App() {
         </Routes>
 
       </AuthProvider>
+
     </BrowserRouter>
   );
 }
