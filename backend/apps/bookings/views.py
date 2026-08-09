@@ -11,41 +11,70 @@ from .selectors import (
     get_event_seats,
     get_user_bookings,
 )
+
 from .serializers import (
     BookingCreateSerializer,
     BookingResponseSerializer,
     MyBookingSerializer,
     SeatHoldSerializer,
 )
+
 from .services import BookingService
 
 
+# ============================================================
+# SEAT AVAILABILITY
+# ============================================================
+
 class SeatAvailabilityView(APIView):
+
     permission_classes = [AllowAny]
 
     def get(self, request):
+
         event_id = request.query_params.get("event")
 
         if not event_id:
             return Response(
-                {"detail": "event query parameter is required."},
+                {
+                    "detail": "event query parameter is required."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         event = get_object_or_404(
-            Event.objects.filter(status=Event.Status.PUBLISHED),
+            Event.objects.filter(
+                status=Event.Status.PUBLISHED
+            ),
             pk=event_id,
         )
 
-        return Response(get_event_seats(event))
+        return Response(
+            get_event_seats(event)
+        )
 
+
+# ============================================================
+# CREATE BOOKING
+# ============================================================
 
 class BookingCreateView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = BookingCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        print("========== BOOKING API ==========")
+        print("USER:", request.user.id)
+        print("REQUEST DATA:", request.data)
+
+        serializer = BookingCreateSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
 
         booking = BookingService.create_booking(
             user=request.user,
@@ -59,21 +88,36 @@ class BookingCreateView(APIView):
         )
 
 
+# ============================================================
+# MY BOOKINGS
+# ============================================================
+
 class MyBookingsView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        bookings = get_user_bookings(request.user)
+
+        bookings = get_user_bookings(
+            request.user
+        )
 
         serializer = MyBookingSerializer(
             bookings,
             many=True,
         )
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data
+        )
 
+
+# ============================================================
+# CANCEL BOOKING
+# ============================================================
 
 class CancelBookingView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, booking_id):
@@ -88,6 +132,11 @@ class CancelBookingView(APIView):
                 "message": "Booking cancelled successfully."
             }
         )
+
+
+# ============================================================
+# HOLD SEAT
+# ============================================================
 
 class SeatHoldView(APIView):
 
@@ -109,7 +158,14 @@ class SeatHoldView(APIView):
             serializer.validated_data["seat"],
         )
 
-        return Response(data)
+        return Response(
+            data
+        )
+
+
+# ============================================================
+# HOLD STATUS
+# ============================================================
 
 class SeatHoldStatusView(APIView):
 
@@ -117,8 +173,21 @@ class SeatHoldStatusView(APIView):
 
     def get(self, request):
 
-        event = request.query_params.get("event")
-        seat = request.query_params.get("seat")
+        event = request.query_params.get(
+            "event"
+        )
+
+        seat = request.query_params.get(
+            "seat"
+        )
+
+        if not event or not seat:
+            return Response(
+                {
+                    "detail": "event and seat are required."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(
             BookingService.hold_status(

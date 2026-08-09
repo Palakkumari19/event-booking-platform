@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import SeatSelection from "./pages/SeatSelection";
+import Checkout from "./pages/Checkout";
 
 export default function App() {
   return (
@@ -57,6 +58,11 @@ export default function App() {
           />
 
           <Route
+            path="/checkout"
+            element={<Checkout />}
+          />
+
+          <Route
             path="/login"
             element={<Login />}
           />
@@ -65,6 +71,7 @@ export default function App() {
             path="/signup"
             element={<Signup />}
           />
+          
 
 
           {/* ============================= */}

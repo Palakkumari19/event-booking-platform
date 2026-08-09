@@ -80,7 +80,7 @@ class PaymentService:
                 "reference_id": f"BOOKING-{booking.id}",
                 "customer": {
                     "name": booking.user.get_full_name()
-                    or booking.user.username,
+                    or booking.user.email,
                     "email": booking.user.email,
                 },
                 "notify": {

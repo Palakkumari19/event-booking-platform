@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { getEventSeats } from "../api/bookings";
-import { useAuth } from "../context/AuthContext";
+import {
+  getEventSeats,
+  holdSeat,
+} from "../api/bookings";
 
 function SeatSelection() {
   const { eventId } = useParams();
   const navigate = useNavigate();
 
-  const { user, isAuthenticated } = useAuth();
-
   const [sections, setSections] = useState([]);
   const [selectedSeat, setSelectedSeat] = useState(null);
 
   const [loading, setLoading] = useState(true);
+  const [holding, setHolding] = useState(false);
+
   const [error, setError] = useState("");
+  const [holdError, setHoldError] = useState("");
 
   useEffect(() => {
     const fetchSeats = async () => {
@@ -24,17 +27,23 @@ function SeatSelection() {
 
         const data = await getEventSeats(eventId);
 
-        console.log("SEATS FROM BACKEND:", data);
+        console.log(
+          "SEATS FROM BACKEND:",
+          data
+        );
 
         setSections(data);
-      } catch (err) {
-        console.error("Failed to load seats:", err);
 
-        if (err.response?.status === 401) {
-          setError("Please sign in to select a seat.");
-        } else {
-          setError("Unable to load seats. Please try again.");
-        }
+      } catch (err) {
+        console.error(
+          "Failed to load seats:",
+          err
+        );
+
+        setError(
+          "Unable to load seats. Please try again."
+        );
+
       } finally {
         setLoading(false);
       }
@@ -43,12 +52,24 @@ function SeatSelection() {
     if (eventId) {
       fetchSeats();
     }
+
   }, [eventId]);
 
-  const handleSeatClick = (seat, section) => {
+
+  // ---------------------------------------
+  // Select seat
+  // ---------------------------------------
+
+  const handleSeatClick = (
+    seat,
+    section
+  ) => {
+
     if (seat.status !== "AVAILABLE") {
       return;
     }
+
+    setHoldError("");
 
     setSelectedSeat({
       ...seat,
@@ -56,41 +77,149 @@ function SeatSelection() {
     });
   };
 
-  const handleContinue = () => {
+
+  // ---------------------------------------
+  // Hold seat + continue
+  // ---------------------------------------
+
+  const handleContinue = async () => {
+
     if (!selectedSeat) {
       return;
     }
 
-    if (!isAuthenticated) {
+    const accessToken =
+      localStorage.getItem(
+        "access_token"
+      );
+
+    if (!accessToken) {
       navigate("/login");
       return;
     }
 
-    /*
-     * We will connect this to the seat-hold API
-     * in the next step.
-     */
+    try {
 
-    console.log("SELECTED SEAT:", selectedSeat);
+      setHolding(true);
+      setHoldError("");
+
+      const data = await holdSeat(
+        eventId,
+        selectedSeat.id,
+        accessToken
+      );
+
+      console.log(
+        "SEAT HOLD RESPONSE:",
+        data
+      );
+
+      /*
+       * Temporarily store the selected
+       * seat information.
+       *
+       * Checkout will use this later.
+       */
+
+      sessionStorage.setItem(
+        "checkout_event_id",
+        eventId
+      );
+
+      sessionStorage.setItem(
+        "checkout_seat_id",
+        selectedSeat.id
+      );
+
+      sessionStorage.setItem(
+        "checkout_seat",
+        JSON.stringify(
+          selectedSeat
+        )
+      );
+
+      sessionStorage.setItem(
+        "checkout_hold_expires_in",
+        data.expires_in
+      );
+
+      navigate("/checkout");
+
+    } catch (err) {
+
+      console.error(
+        "Seat hold failed:",
+        err
+      );
+
+      const message =
+        err.response?.data?.detail ||
+        err.response?.data?.non_field_errors?.[0] ||
+        "Unable to hold this seat.";
+
+      setHoldError(message);
+
+      /*
+       * Refresh the seat map because
+       * another user may have taken it.
+       */
+
+      try {
+
+        const updatedSeats =
+          await getEventSeats(
+            eventId
+          );
+
+        setSections(
+          updatedSeats
+        );
+
+      } catch (refreshError) {
+        console.error(
+          refreshError
+        );
+      }
+
+    } finally {
+
+      setHolding(false);
+
+    }
   };
+
+
+  // ---------------------------------------
+  // Loading
+  // ---------------------------------------
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#09090b] px-6 py-16 text-white">
+
         <div className="mx-auto max-w-7xl">
 
           <div className="flex min-h-96 items-center justify-center">
+
             <div className="h-9 w-9 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-400" />
+
           </div>
 
         </div>
+
       </div>
     );
   }
 
+
+  // ---------------------------------------
+  // General error
+  // ---------------------------------------
+
   if (error) {
     return (
       <div className="min-h-screen bg-[#09090b] px-6 py-16 text-white">
+
         <div className="mx-auto max-w-7xl">
 
           <Link
@@ -105,9 +234,15 @@ function SeatSelection() {
           </div>
 
         </div>
+
       </div>
     );
   }
+
+
+  // ---------------------------------------
+  // Main
+  // ---------------------------------------
 
   return (
     <div className="min-h-screen bg-[#09090b] px-6 py-12 text-white">
@@ -143,6 +278,15 @@ function SeatSelection() {
         </div>
 
 
+        {/* Hold error */}
+
+        {holdError && (
+          <div className="mt-8 rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-300">
+            {holdError}
+          </div>
+        )}
+
+
         {/* Main layout */}
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -163,107 +307,123 @@ function SeatSelection() {
 
             <div className="mt-12 space-y-12">
 
-              {sections.map((sectionGroup) => {
+              {sections.map(
+                (sectionGroup) => {
 
-                const section = sectionGroup.section;
-                const seats = sectionGroup.seats || [];
+                  const section =
+                    sectionGroup.section;
 
-                return (
-                  <div key={section.id}>
+                  const seats =
+                    sectionGroup.seats ||
+                    [];
 
-                    {/* Section heading */}
+                  return (
+                    <div
+                      key={section.id}
+                    >
 
-                    <div className="mb-5">
+                      {/* Section heading */}
 
-                      <div className="flex items-center justify-between">
+                      <div className="mb-5">
 
-                        <div>
+                        <div className="flex items-center justify-between">
 
-                          <h2 className="text-xl font-semibold text-white">
-                            {section.name}
-                          </h2>
+                          <div>
 
-                          <p className="mt-1 text-sm text-zinc-500">
-                            ₹{section.price} per seat
-                          </p>
+                            <h2 className="text-xl font-semibold text-white">
+                              {section.name}
+                            </h2>
+
+                            <p className="mt-1 text-sm text-zinc-500">
+                              ₹{section.price} per seat
+                            </p>
+
+                          </div>
+
+                          <span className="text-sm text-zinc-500">
+                            {seats.length} seats
+                          </span>
 
                         </div>
 
-                        <span className="text-sm text-zinc-500">
-                          {seats.length} seats
-                        </span>
-
                       </div>
+
+
+                      {/* Seats */}
+
+                      {seats.length === 0 ? (
+
+                        <div className="rounded-xl border border-white/5 bg-zinc-950/50 px-5 py-4 text-sm text-zinc-600">
+                          No seats available in this section.
+                        </div>
+
+                      ) : (
+
+                        <div className="grid grid-cols-5 gap-3 sm:grid-cols-8 md:grid-cols-10">
+
+                          {seats.map(
+                            (seat) => {
+
+                              const isAvailable =
+                                seat.status ===
+                                "AVAILABLE";
+
+                              const isSelected =
+                                selectedSeat?.id ===
+                                seat.id;
+
+                              const isBooked =
+                                seat.status ===
+                                "BOOKED";
+
+                              return (
+                                <button
+                                  key={seat.id}
+                                  type="button"
+                                  disabled={
+                                    !isAvailable ||
+                                    holding
+                                  }
+                                  onClick={() =>
+                                    handleSeatClick(
+                                      seat,
+                                      sectionGroup
+                                    )
+                                  }
+                                  className={`
+                                    flex
+                                    aspect-square
+                                    items-center
+                                    justify-center
+                                    rounded-lg
+                                    border
+                                    text-sm
+                                    font-medium
+                                    transition
+
+                                    ${
+                                      isSelected
+                                        ? "border-indigo-400 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+                                        : isBooked
+                                        ? "cursor-not-allowed border-transparent bg-zinc-950 text-zinc-700"
+                                        : "border-white/10 bg-zinc-800 text-zinc-300 hover:border-indigo-400 hover:bg-indigo-500/10 hover:text-white"
+                                    }
+                                  `}
+                                >
+                                  {seat.seat_number}
+                                </button>
+                              );
+                            }
+                          )}
+
+                        </div>
+
+                      )}
 
                     </div>
-
-
-                    {/* Seats */}
-
-                    {seats.length === 0 ? (
-
-                      <div className="rounded-xl border border-white/5 bg-zinc-950/50 px-5 py-4 text-sm text-zinc-600">
-                        No seats available in this section.
-                      </div>
-
-                    ) : (
-
-                      <div className="grid grid-cols-5 gap-3 sm:grid-cols-8 md:grid-cols-10">
-
-                        {seats.map((seat) => {
-
-                          const isAvailable =
-                            seat.status === "AVAILABLE";
-
-                          const isSelected =
-                            selectedSeat?.id === seat.id;
-
-                          const isBooked =
-                            seat.status === "BOOKED";
-
-                          return (
-                            <button
-                              key={seat.id}
-                              type="button"
-                              disabled={!isAvailable}
-                              onClick={() =>
-                                handleSeatClick(
-                                  seat,
-                                  sectionGroup
-                                )
-                              }
-                              className={`
-                                flex
-                                aspect-square
-                                items-center
-                                justify-center
-                                rounded-lg
-                                border
-                                text-sm
-                                font-medium
-                                transition
-
-                                ${
-                                  isSelected
-                                    ? "border-indigo-400 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
-                                    : isBooked
-                                    ? "cursor-not-allowed border-transparent bg-zinc-950 text-zinc-700"
-                                    : "border-white/10 bg-zinc-800 text-zinc-300 hover:border-indigo-400 hover:bg-indigo-500/10 hover:text-white"
-                                }
-                              `}
-                            >
-                              {seat.seat_number}
-                            </button>
-                          );
-                        })}
-
-                      </div>
-
-                    )}
-
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
 
             </div>
 
@@ -347,7 +507,10 @@ function SeatSelection() {
                     </p>
 
                     <p className="mt-1 font-medium text-white">
-                      {selectedSeat.section.name}
+                      {
+                        selectedSeat.section
+                          .name
+                      }
                     </p>
 
                   </div>
@@ -375,7 +538,9 @@ function SeatSelection() {
                       </p>
 
                       <p className="mt-1 font-medium text-white">
-                        {selectedSeat.seat_number}
+                        {
+                          selectedSeat.seat_number
+                        }
                       </p>
 
                     </div>
@@ -390,7 +555,11 @@ function SeatSelection() {
                     </p>
 
                     <p className="mt-1 text-xl font-semibold text-white">
-                      ₹{selectedSeat.section.price}
+                      ₹
+                      {
+                        selectedSeat.section
+                          .price
+                      }
                     </p>
 
                   </div>
@@ -402,10 +571,15 @@ function SeatSelection() {
 
                 <button
                   type="button"
-                  onClick={handleContinue}
-                  className="mt-8 w-full rounded-xl bg-white px-5 py-3.5 font-medium text-black transition hover:bg-zinc-200"
+                  onClick={
+                    handleContinue
+                  }
+                  disabled={holding}
+                  className="mt-8 w-full rounded-xl bg-white px-5 py-3.5 font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Continue to Checkout →
+                  {holding
+                    ? "Holding seat..."
+                    : "Continue to Checkout →"}
                 </button>
 
               </div>

@@ -1,33 +1,15 @@
-import axios from "axios";
+import apiClient from "./client";
 
-const API_URL = "http://127.0.0.1:8000/api";
+// ============================================================
+// GET EVENT SEATS
+// ============================================================
 
 export const getEventSeats = async (eventId) => {
-  const response = await axios.get(
-    `${API_URL}/bookings/seats/?event=${eventId}`
-  );
-
-  return response.data;
-};
-
-
-// ---------------------------------------
-// Hold a seat
-// ---------------------------------------
-export const holdSeat = async (
-  eventId,
-  seatId,
-  accessToken
-) => {
-  const response = await axios.post(
-    `${API_URL}/bookings/hold/`,
+  const response = await apiClient.get(
+    "/bookings/seats/",
     {
-      event: eventId,
-      seat: seatId,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+      params: {
+        event: eventId,
       },
     }
   );
@@ -35,26 +17,89 @@ export const holdSeat = async (
   return response.data;
 };
 
+// ============================================================
+// HOLD SEAT
+// ============================================================
 
-// ---------------------------------------
-// Check hold status
-// ---------------------------------------
+export const holdSeat = async (
+  eventId,
+  seatId
+) => {
+  const response = await apiClient.post(
+    "/bookings/hold/",
+    {
+      event: eventId,
+      seat: seatId,
+    }
+  );
+
+  return response.data;
+};
+
+// ============================================================
+// CHECK HOLD STATUS
+// ============================================================
+
 export const getSeatHoldStatus = async (
   eventId,
-  seatId,
-  accessToken
+  seatId
 ) => {
-  const response = await axios.get(
-    `${API_URL}/bookings/hold-status/`,
+  const response = await apiClient.get(
+    "/bookings/hold-status/",
     {
       params: {
         event: eventId,
         seat: seatId,
       },
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
     }
+  );
+
+  return response.data;
+};
+
+// ============================================================
+// CREATE BOOKING
+// ============================================================
+
+export const createBooking = async (
+  eventId,
+  seatId
+) => {
+
+  const response = await apiClient.post(
+    "/bookings/",
+    {
+      event: eventId,
+      seat: seatId,
+    }
+  );
+
+  return response.data;
+};
+
+// ============================================================
+// GET MY BOOKINGS
+// ============================================================
+
+export const getMyBookings = async () => {
+
+  const response = await apiClient.get(
+    "/bookings/my-bookings/"
+  );
+
+  return response.data;
+};
+
+// ============================================================
+// CANCEL BOOKING
+// ============================================================
+
+export const cancelBooking = async (
+  bookingId
+) => {
+
+  const response = await apiClient.patch(
+    `/bookings/${bookingId}/cancel/`
   );
 
   return response.data;
