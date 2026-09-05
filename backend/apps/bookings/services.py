@@ -200,21 +200,76 @@ class BookingService:
                 "Booking not found."
             )
 
+        # --------------------------------------------------------
+        # Verify ownership
+        # --------------------------------------------------------
+
         if booking.user != user:
             raise PermissionDenied(
                 "You cannot cancel another user's booking."
             )
+
+        # --------------------------------------------------------
+        # Already cancelled
+        # --------------------------------------------------------
 
         if booking.status == Booking.Status.CANCELLED:
             raise ValidationError(
                 "Booking is already cancelled."
             )
 
+        # --------------------------------------------------------
+        # Handle payment/refund
+        # --------------------------------------------------------
+        #
+        # Import locally to avoid circular imports:
+        #
+        # BookingService → PaymentService
+        # PaymentService → BookingService
+        #
+        # Only confirmed bookings with a successful payment
+        # require a Razorpay refund.
+        # --------------------------------------------------------
+
+        if booking.status == Booking.Status.CONFIRMED:
+
+            from apps.payments.services import PaymentService
+            from apps.payments.models import Payment
+
+            payment = (
+                Payment.objects
+                .select_for_update()
+                .filter(
+                    booking=booking,
+                )
+                .first()
+            )
+
+            if payment is not None:
+
+                if payment.status == Payment.Status.SUCCESS:
+
+                    PaymentService.refund_payment(
+                        payment
+                    )
+
+                elif payment.status == Payment.Status.REFUNDED:
+                    # Already refunded.
+                    pass
+
+        # --------------------------------------------------------
+        # Cancel booking
+        # --------------------------------------------------------
+
         booking.status = Booking.Status.CANCELLED
 
         booking.save(
             update_fields=["status"]
         )
+
+        # --------------------------------------------------------
+        # Release any remaining Redis hold
+        # --------------------------------------------------------
 
         SeatHoldCache.release_seat(
             booking.event.id,
@@ -230,13 +285,26 @@ class BookingService:
     @staticmethod
     @transaction.atomic
     def confirm_booking(booking):
+        """
+        Confirm a booking only if it is still pending.
+
+        A cancelled booking can never be confirmed again, even if an
+        old payment attempt later reports success.
+        """
+
+        booking = (
+            Booking.objects
+            .select_for_update()
+            .select_related("event", "seat")
+            .get(id=booking.id)
+        )
 
         if booking.status == Booking.Status.CONFIRMED:
             return booking
 
         if booking.status == Booking.Status.CANCELLED:
             raise ValidationError(
-                "Cancelled bookings cannot be confirmed."
+                "This booking has been cancelled and cannot be confirmed."
             )
 
         booking.status = Booking.Status.CONFIRMED

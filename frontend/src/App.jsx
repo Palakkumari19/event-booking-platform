@@ -9,7 +9,6 @@ import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Login from "./pages/Login";
@@ -17,6 +16,8 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import SeatSelection from "./pages/SeatSelection";
 import Checkout from "./pages/Checkout";
+import MyTickets from "./pages/MyTickets";
+import TicketDetails from "./pages/TicketDetails";
 
 export default function App() {
   return (
@@ -85,7 +86,18 @@ export default function App() {
               element={<Profile />}
             />
 
+            <Route
+              path="/tickets"
+              element={<MyTickets />}
+            />
+
+            <Route
+              path="/tickets/:id"
+              element={<TicketDetails />}
+            />
+
           </Route>
+          
 
 
           {/* ============================= */}

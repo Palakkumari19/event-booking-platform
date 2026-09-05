@@ -115,11 +115,18 @@ function SeatSelection() {
       );
 
       /*
-       * Temporarily store the selected
-       * seat information.
+       * A new seat has been successfully held.
        *
-       * Checkout will use this later.
+       * Any previous checkout_booking_id belongs
+       * to an older seat/booking and must not be reused.
+       *
+       * Checkout will create a fresh PENDING booking
+       * for this newly held seat.
        */
+
+      sessionStorage.removeItem(
+        "checkout_booking_id"
+      );
 
       sessionStorage.setItem(
         "checkout_event_id",
