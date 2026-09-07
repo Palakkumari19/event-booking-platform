@@ -54,8 +54,8 @@ class Booking(models.Model):
                     ]
                 ),
                 name="unique_active_booking_per_event",
-    )
-]
+            )
+        ]
 
     def clean(self):
         if self.seat.section.venue_id != self.event.venue_id:
@@ -72,6 +72,12 @@ class Booking(models.Model):
             raise ValidationError(
                 "Bookings are only allowed for published events."
             )
+
+        # A cancelled booking may be cancelled after the
+        # booking window has closed. Therefore, booking-window
+        # validation only applies to active bookings.
+        if self.status == self.Status.CANCELLED:
+            return
 
         now = timezone.now()
 

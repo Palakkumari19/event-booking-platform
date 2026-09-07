@@ -382,8 +382,8 @@ class PaymentService:
             f"booking-refund-{payment.booking_id}"
         )
 
-        refund_response = client.post(
-            f"payments/{payment.razorpay_payment_id}/refund",
+        refund_response = client.payment.refund(
+            payment.razorpay_payment_id,
             {
                 "amount": refund_amount,
             },

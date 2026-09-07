@@ -44,6 +44,14 @@ function EventDetails() {
     );
   }
 
+  const now = new Date();
+  const bookingStart = new Date(event.booking_start);
+  const bookingEnd = new Date(event.booking_end);
+
+  const bookingNotStarted = now < bookingStart;
+  const bookingClosed = now > bookingEnd;
+  const bookingOpen = !bookingNotStarted && !bookingClosed;
+
   const startDate = new Date(event.start_time);
 
   const date = startDate.toLocaleDateString("en-IN", {
@@ -54,6 +62,28 @@ function EventDetails() {
   });
 
   const time = startDate.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const bookingStartDate = bookingStart.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const bookingStartTime = bookingStart.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const bookingEndDate = bookingEnd.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const bookingEndTime = bookingEnd.toLocaleTimeString("en-IN", {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -127,6 +157,62 @@ function EventDetails() {
             <p className="mt-2 font-medium text-white">
               {event.venue.name}
             </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* Booking Window */}
+      <section className="mt-8 rounded-2xl border border-white/10 bg-zinc-900 p-6">
+
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+          <div>
+            <p className="text-sm font-medium uppercase tracking-widest text-indigo-400">
+              Booking window
+            </p>
+
+            {bookingOpen && (
+              <h2 className="mt-2 text-xl font-semibold text-emerald-300">
+                Booking is currently open
+              </h2>
+            )}
+
+            {bookingNotStarted && (
+              <h2 className="mt-2 text-xl font-semibold text-yellow-300">
+                Booking opens soon
+              </h2>
+            )}
+
+            {bookingClosed && (
+              <h2 className="mt-2 text-xl font-semibold text-red-300">
+                Booking is closed
+              </h2>
+            )}
+
+            <p className="mt-2 text-sm text-zinc-400">
+              Opens {bookingStartDate} at {bookingStartTime}
+              {" · "}
+              Closes {bookingEndDate} at {bookingEndTime}
+            </p>
+          </div>
+
+          <div
+            className={`rounded-xl px-4 py-2 text-sm font-medium ${
+              bookingOpen
+                ? "bg-emerald-400/10 text-emerald-300"
+                : bookingNotStarted
+                  ? "bg-yellow-400/10 text-yellow-300"
+                  : "bg-red-400/10 text-red-300"
+            }`}
+          >
+            {bookingOpen
+              ? "OPEN"
+              : bookingNotStarted
+                ? "NOT OPEN"
+                : "CLOSED"}
           </div>
 
         </div>
@@ -184,12 +270,26 @@ function EventDetails() {
         {/* CTA */}
         <div className="mt-10 flex justify-end">
 
-          <Link
-            to={`/events/${event.id}/seats`}
-            className="rounded-xl bg-indigo-500 px-7 py-3 font-medium text-white transition hover:bg-indigo-400"
-          >
-            Choose Seats →
-          </Link>
+          {bookingOpen && (
+            <Link
+              to={`/events/${event.id}/seats`}
+              className="rounded-xl bg-indigo-500 px-7 py-3 font-medium text-white transition hover:bg-indigo-400"
+            >
+              Choose Seats →
+            </Link>
+          )}
+
+          {bookingNotStarted && (
+            <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-7 py-3 text-sm font-medium text-yellow-300">
+              Booking opens soon
+            </div>
+          )}
+
+          {bookingClosed && (
+            <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-7 py-3 text-sm font-medium text-red-300">
+              Booking Closed
+            </div>
+          )}
 
         </div>
 

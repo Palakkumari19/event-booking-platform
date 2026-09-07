@@ -30,7 +30,6 @@ export default function Navbar() {
           </span>
         </Link>
 
-
         {/* Navigation */}
         <nav className="hidden items-center gap-8 md:flex">
 
@@ -51,7 +50,7 @@ export default function Navbar() {
               </Link>
 
               <Link
-                to="/my-tickets"
+                to="/tickets"
                 className="text-sm text-zinc-400 transition hover:text-white"
               >
                 My Tickets
@@ -60,7 +59,6 @@ export default function Navbar() {
           )}
 
         </nav>
-
 
         {/* Right side */}
         <div className="flex items-center gap-4">
