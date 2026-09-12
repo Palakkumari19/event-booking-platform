@@ -67,3 +67,9 @@ class TicketDetailSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(
             obj.qr_code.url
         )
+
+
+class TicketValidationSerializer(serializers.Serializer):
+    ticket_number = serializers.CharField(
+        max_length=30,
+    )

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.events',
     'apps.bookings',
     'apps.tickets',
+    'apps.notifications',
     'rest_framework',
     'apps.payments',
     "corsheaders",

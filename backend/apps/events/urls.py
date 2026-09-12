@@ -4,6 +4,11 @@ from .views import (
     EventDetailView,
     EventListView,
     EventSeatListView,
+    OrganizerEventListView,
+    OrganizerEventCreateView,
+    OrganizerEventDetailView,
+    OrganizerPublishEventView,
+    OrganizerCancelEventView,
 )
 
 urlpatterns = [
@@ -11,6 +16,36 @@ urlpatterns = [
         "",
         EventListView.as_view(),
         name="event-list",
+    ),
+
+    path(
+        "organizer/",
+        OrganizerEventListView.as_view(),
+        name="organizer-event-list",
+    ),
+
+    path(
+        "organizer/create/",
+        OrganizerEventCreateView.as_view(),
+        name="organizer-event-create",
+    ),
+
+    path(
+        "organizer/<int:pk>/",
+        OrganizerEventDetailView.as_view(),
+        name="organizer-event-detail",
+    ),
+
+    path(
+        "organizer/<int:event_id>/publish/",
+        OrganizerPublishEventView.as_view(),
+        name="organizer-event-publish",
+    ),
+
+    path(
+        "organizer/<int:event_id>/cancel/",
+        OrganizerCancelEventView.as_view(),
+        name="organizer-event-cancel",
     ),
 
     path(

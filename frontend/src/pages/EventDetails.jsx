@@ -28,29 +28,54 @@ function EventDetails() {
 
   if (loading) {
     return (
-      <div className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-6">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-400" />
-      </div>
+      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-[#fffdf7]">
+        <div className="h-9 w-9 animate-spin rounded-full border-2 border-black/10 border-t-[#CA6180]" />
+      </main>
     );
   }
 
   if (error || !event) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-20">
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-300">
-          {error || "Event not found."}
+      <main className="min-h-[calc(100vh-72px)] bg-[#fffdf7] px-6 py-20">
+        <div className="mx-auto max-w-7xl">
+
+          <div className="rounded-[2rem] border border-[#CA6180]/20 bg-[#FCB7C7]/20 p-8">
+
+            <p className="text-xs font-bold uppercase tracking-widest text-[#CA6180]">
+              EVENTLY / ERROR
+            </p>
+
+            <h1 className="mt-3 text-3xl font-black">
+              Event not found.
+            </h1>
+
+            <p className="mt-2 text-[#171717]/55">
+              {error || "We couldn't find this event."}
+            </p>
+
+            <Link
+              to="/events"
+              className="mt-6 inline-flex rounded-full bg-[#171717] px-6 py-3 text-sm font-semibold text-white"
+            >
+              ← Back to events
+            </Link>
+
+          </div>
+
         </div>
-      </div>
+      </main>
     );
   }
 
   const now = new Date();
+
   const bookingStart = new Date(event.booking_start);
   const bookingEnd = new Date(event.booking_end);
 
   const bookingNotStarted = now < bookingStart;
   const bookingClosed = now > bookingEnd;
-  const bookingOpen = !bookingNotStarted && !bookingClosed;
+  const bookingOpen =
+    !bookingNotStarted && !bookingClosed;
 
   const startDate = new Date(event.start_time);
 
@@ -66,236 +91,324 @@ function EventDetails() {
     minute: "2-digit",
   });
 
-  const bookingStartDate = bookingStart.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const bookingStartDate =
+    bookingStart.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 
-  const bookingStartTime = bookingStart.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const bookingStartTime =
+    bookingStart.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
-  const bookingEndDate = bookingEnd.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const bookingEndDate =
+    bookingEnd.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 
-  const bookingEndTime = bookingEnd.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const bookingEndTime =
+    bookingEnd.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12">
+    <main className="min-h-[calc(100vh-72px)] bg-[#fffdf7] text-[#171717]">
 
-      {/* Back */}
-      <Link
-        to="/events"
-        className="text-sm text-zinc-400 transition hover:text-white"
-      >
-        ← Back to events
-      </Link>
+      <div className="mx-auto max-w-7xl px-6 py-10 lg:py-14">
 
-      {/* Hero */}
-      <section className="mt-8 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900">
+        {/* Back */}
+        <Link
+          to="/events"
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#171717]/50 transition hover:text-[#CA6180]"
+        >
+          ← Back to events
+        </Link>
 
-        <div className="relative flex min-h-[360px] items-end overflow-hidden bg-gradient-to-br from-indigo-950 via-zinc-900 to-zinc-950 p-8 md:p-12">
+        {/* Hero */}
+        <section className="mt-8 overflow-hidden rounded-[2rem] bg-[#CA6180]">
 
-          <div className="absolute right-12 top-10 text-[120px] opacity-20">
-            🎵
-          </div>
+          <div className="relative min-h-[440px] overflow-hidden p-8 sm:p-12 lg:p-14">
 
-          <div className="relative">
+            {/* Decorative shapes */}
+            <div className="absolute -right-20 -top-28 h-80 w-80 rounded-full bg-[#FEFD99]" />
 
-            <span className="inline-flex rounded-full border border-indigo-400/20 bg-indigo-400/10 px-3 py-1 text-xs font-medium text-indigo-300">
-              Upcoming Event
-            </span>
+            <div className="absolute -bottom-36 -left-20 h-80 w-80 rounded-full bg-[#9ED3DC]" />
 
-            <h1 className="mt-5 max-w-3xl text-4xl font-bold tracking-tight text-white md:text-6xl">
-              {event.title}
-            </h1>
+            <div className="relative flex min-h-[340px] flex-col justify-between">
 
-            <p className="mt-5 text-lg text-zinc-300">
-              📍 {event.venue.name}
-            </p>
+              <div className="flex items-center justify-between">
 
-          </div>
+                <span className="text-xs font-bold uppercase tracking-[0.2em]">
+                  EVENTLY / EVENT
+                </span>
 
-        </div>
-
-        {/* Details */}
-        <div className="grid gap-6 border-t border-white/10 p-8 md:grid-cols-3">
-
-          <div>
-            <p className="text-sm text-zinc-500">
-              Date
-            </p>
-
-            <p className="mt-2 font-medium text-white">
-              {date}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-zinc-500">
-              Time
-            </p>
-
-            <p className="mt-2 font-medium text-white">
-              {time}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-zinc-500">
-              Venue
-            </p>
-
-            <p className="mt-2 font-medium text-white">
-              {event.venue.name}
-            </p>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* Booking Window */}
-      <section className="mt-8 rounded-2xl border border-white/10 bg-zinc-900 p-6">
-
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-
-          <div>
-            <p className="text-sm font-medium uppercase tracking-widest text-indigo-400">
-              Booking window
-            </p>
-
-            {bookingOpen && (
-              <h2 className="mt-2 text-xl font-semibold text-emerald-300">
-                Booking is currently open
-              </h2>
-            )}
-
-            {bookingNotStarted && (
-              <h2 className="mt-2 text-xl font-semibold text-yellow-300">
-                Booking opens soon
-              </h2>
-            )}
-
-            {bookingClosed && (
-              <h2 className="mt-2 text-xl font-semibold text-red-300">
-                Booking is closed
-              </h2>
-            )}
-
-            <p className="mt-2 text-sm text-zinc-400">
-              Opens {bookingStartDate} at {bookingStartTime}
-              {" · "}
-              Closes {bookingEndDate} at {bookingEndTime}
-            </p>
-          </div>
-
-          <div
-            className={`rounded-xl px-4 py-2 text-sm font-medium ${
-              bookingOpen
-                ? "bg-emerald-400/10 text-emerald-300"
-                : bookingNotStarted
-                  ? "bg-yellow-400/10 text-yellow-300"
-                  : "bg-red-400/10 text-red-300"
-            }`}
-          >
-            {bookingOpen
-              ? "OPEN"
-              : bookingNotStarted
-                ? "NOT OPEN"
-                : "CLOSED"}
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* Seat / Section information */}
-      <section className="mt-12">
-
-        <div>
-          <p className="text-sm font-medium uppercase tracking-widest text-indigo-400">
-            Tickets
-          </p>
-
-          <h2 className="mt-2 text-3xl font-bold text-white">
-            Choose your experience
-          </h2>
-
-          <p className="mt-3 text-zinc-400">
-            Select a ticket category and continue to seat selection.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-
-          {event.sections?.map((section) => (
-            <div
-              key={section.id}
-              className="rounded-2xl border border-white/10 bg-zinc-900 p-6 transition hover:border-white/20"
-            >
-
-              <div className="flex items-start justify-between">
-
-                <div>
-                  <h3 className="text-xl font-semibold text-white">
-                    {section.name}
-                  </h3>
-
-                  <p className="mt-2 text-sm text-zinc-500">
-                    Ticket category
-                  </p>
-                </div>
-
-                <span className="rounded-lg bg-white/5 px-3 py-2 text-sm text-zinc-300">
-                  ₹{section.price}
+                <span className="rounded-full border border-black/20 px-4 py-1.5 text-xs font-semibold">
+                  Upcoming
                 </span>
 
               </div>
 
+              <div className="max-w-4xl">
+
+                <p className="text-sm font-bold uppercase tracking-[0.15em] text-black/50">
+                  {date}
+                </p>
+
+                <h1 className="mt-4 max-w-4xl text-5xl font-black leading-[0.9] tracking-[-0.05em] sm:text-6xl lg:text-8xl">
+                  {event.title}
+                </h1>
+
+                <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium">
+
+                  <span>
+                    📍 {event.venue.name}
+                  </span>
+
+                  <span>
+                    {time}
+                  </span>
+
+                </div>
+
+              </div>
+
             </div>
-          ))}
+          </div>
 
-        </div>
+          {/* Event information */}
+          <div className="grid border-t border-black/15 bg-[#fffdf7] md:grid-cols-3">
 
-        {/* CTA */}
-        <div className="mt-10 flex justify-end">
+            <div className="border-b border-black/10 p-7 md:border-b-0 md:border-r">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#171717]/40">
+                Date
+              </p>
 
-          {bookingOpen && (
-            <Link
-              to={`/events/${event.id}/seats`}
-              className="rounded-xl bg-indigo-500 px-7 py-3 font-medium text-white transition hover:bg-indigo-400"
+              <p className="mt-3 text-lg font-bold">
+                {date}
+              </p>
+            </div>
+
+            <div className="border-b border-black/10 p-7 md:border-b-0 md:border-r">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#171717]/40">
+                Time
+              </p>
+
+              <p className="mt-3 text-lg font-bold">
+                {time}
+              </p>
+            </div>
+
+            <div className="p-7">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#171717]/40">
+                Venue
+              </p>
+
+              <p className="mt-3 text-lg font-bold">
+                {event.venue.name}
+              </p>
+
+              <p className="mt-1 text-sm text-[#171717]/45">
+                {event.venue.city}
+              </p>
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* Description */}
+        {event.description && (
+          <section className="mt-12 grid gap-8 md:grid-cols-[0.7fr_1.3fr]">
+
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#CA6180]">
+                About
+              </p>
+
+              <h2 className="mt-2 text-3xl font-black tracking-tight">
+                What to expect
+              </h2>
+            </div>
+
+            <p className="max-w-3xl text-lg leading-8 text-[#171717]/60">
+              {event.description}
+            </p>
+
+          </section>
+        )}
+
+        {/* Booking window */}
+        <section className="mt-12 rounded-[2rem] border border-black/10 bg-white p-7 shadow-[0_12px_40px_rgba(23,23,23,0.04)]">
+
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+
+            <div>
+
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#CA6180]">
+                Booking window
+              </p>
+
+              {bookingOpen && (
+                <h2 className="mt-2 text-2xl font-black">
+                  Booking is open.
+                </h2>
+              )}
+
+              {bookingNotStarted && (
+                <h2 className="mt-2 text-2xl font-black">
+                  Booking opens soon.
+                </h2>
+              )}
+
+              {bookingClosed && (
+                <h2 className="mt-2 text-2xl font-black">
+                  Booking has closed.
+                </h2>
+              )}
+
+              <p className="mt-3 text-sm leading-6 text-[#171717]/50">
+                Opens {bookingStartDate} at {bookingStartTime}
+                {" · "}
+                Closes {bookingEndDate} at {bookingEndTime}
+              </p>
+
+            </div>
+
+            <div
+              className={`w-fit rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-widest ${
+                bookingOpen
+                  ? "bg-[#9ED3DC]"
+                  : bookingNotStarted
+                    ? "bg-[#FEFD99]"
+                    : "bg-[#FCB7C7]"
+              }`}
             >
-              Choose Seats →
-            </Link>
-          )}
-
-          {bookingNotStarted && (
-            <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-7 py-3 text-sm font-medium text-yellow-300">
-              Booking opens soon
+              {bookingOpen
+                ? "Open"
+                : bookingNotStarted
+                  ? "Not open"
+                  : "Closed"}
             </div>
-          )}
 
-          {bookingClosed && (
-            <div className="rounded-xl border border-red-400/20 bg-red-400/10 px-7 py-3 text-sm font-medium text-red-300">
-              Booking Closed
+          </div>
+
+        </section>
+
+        {/* Tickets */}
+        <section className="mt-16">
+
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+
+            <div>
+
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#CA6180]">
+                Tickets
+              </p>
+
+              <h2 className="mt-2 text-4xl font-black tracking-[-0.04em]">
+                Pick your experience.
+              </h2>
+
+              <p className="mt-3 text-[#171717]/50">
+                Choose a ticket category and continue to
+                seat selection.
+              </p>
+
             </div>
-          )}
 
-        </div>
+          </div>
 
-      </section>
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
 
-    </div>
+            {event.sections?.map((section, index) => {
+
+              const backgrounds = [
+                "bg-[#9ED3DC]",
+                "bg-[#FEFD99]",
+                "bg-[#FCB7C7]",
+              ];
+
+              const background =
+                backgrounds[index % backgrounds.length];
+
+              return (
+                <div
+                  key={section.id}
+                  className={`group rounded-[1.5rem] ${background} p-6 transition hover:-translate-y-1`}
+                >
+
+                  <div className="flex items-start justify-between">
+
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-black/45">
+                        Section {String(index + 1).padStart(2, "0")}
+                      </p>
+
+                      <h3 className="mt-4 text-2xl font-black">
+                        {section.name}
+                      </h3>
+                    </div>
+
+                    <span className="rounded-full bg-black px-3 py-1.5 text-sm font-bold text-white">
+                      ₹{section.price}
+                    </span>
+
+                  </div>
+
+                  <div className="mt-12 border-t border-black/15 pt-4">
+
+                    <p className="text-sm font-medium text-black/55">
+                      Ticket category
+                    </p>
+
+                  </div>
+
+                </div>
+              );
+            })}
+
+          </div>
+
+          {/* CTA */}
+          <div className="mt-10 flex justify-end">
+
+            {bookingOpen && (
+              <Link
+                to={`/events/${event.id}/seats`}
+                className="group inline-flex items-center gap-4 rounded-full bg-[#171717] px-7 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#CA6180]"
+              >
+                Choose your seats
+
+                <span className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            )}
+
+            {bookingNotStarted && (
+              <div className="rounded-full bg-[#FEFD99] px-7 py-3.5 text-sm font-bold">
+                Booking opens soon
+              </div>
+            )}
+
+            {bookingClosed && (
+              <div className="rounded-full bg-[#FCB7C7] px-7 py-3.5 text-sm font-bold">
+                Booking closed
+              </div>
+            )}
+
+          </div>
+
+        </section>
+
+      </div>
+    </main>
   );
 }
 

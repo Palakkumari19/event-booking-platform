@@ -28,30 +28,39 @@ function TicketDetails() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-400" />
-      </div>
+      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-[#fffdf7]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-9 w-9 animate-spin rounded-full border-2 border-black/10 border-t-[#CA6180]" />
+          <p className="text-sm font-medium text-black/50">
+            Loading your ticket...
+          </p>
+        </div>
+      </main>
     );
   }
 
   if (error || !ticket) {
     return (
-      <div className="min-h-screen bg-[#09090b] px-6 py-12 text-white">
+      <main className="min-h-[calc(100vh-72px)] bg-[#fffdf7] px-6 py-12">
         <div className="mx-auto max-w-3xl">
-
           <Link
             to="/tickets"
-            className="text-sm text-zinc-400 transition hover:text-white"
+            className="text-sm font-semibold text-black/50 transition hover:text-[#CA6180]"
           >
             ← Back to tickets
           </Link>
 
-          <div className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-300">
-            {error || "Ticket not found."}
-          </div>
+          <div className="mt-8 rounded-3xl border border-[#CA6180]/20 bg-[#FCB7C7]/30 p-6">
+            <p className="font-bold text-[#7d3049]">
+              Ticket unavailable
+            </p>
 
+            <p className="mt-2 text-sm text-[#7d3049]/80">
+              {error || "Ticket not found."}
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -69,131 +78,140 @@ function TicketDetails() {
     minute: "2-digit",
   });
 
+  const statusStyles = {
+    ACTIVE: "bg-[#9ED3DC] text-black",
+    USED: "bg-black text-white",
+    CANCELLED: "bg-[#FCB7C7] text-[#7d3049]",
+  };
+
   return (
-    <div className="min-h-screen bg-[#09090b] px-6 py-12 text-white">
-      <div className="mx-auto max-w-4xl">
+    <main className="min-h-[calc(100vh-72px)] bg-[#fffdf7] px-6 py-10 md:py-14">
+      <div className="mx-auto max-w-5xl">
 
         {/* Back */}
         <Link
           to="/tickets"
-          className="text-sm text-zinc-400 transition hover:text-white"
+          className="text-sm font-semibold text-black/50 transition hover:text-[#CA6180]"
         >
           ← Back to tickets
         </Link>
 
         {/* Header */}
-        <div className="mt-10">
-          <p className="text-sm font-medium uppercase tracking-widest text-indigo-400">
-            Your ticket
-          </p>
+        <div className="mt-8">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-[#CA6180]">
+                Your ticket
+              </p>
 
-          <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
-            {ticket.event.title}
-          </h1>
+              <h1 className="mt-3 max-w-3xl text-4xl font-black leading-tight tracking-tight text-black md:text-5xl">
+                {ticket.event.title}
+              </h1>
 
-          <p className="mt-4 text-zinc-400">
-            Present this ticket at the event entrance.
-          </p>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-black/55">
+                Keep this ticket ready for entry. Your QR code contains
+                the information needed for validation.
+              </p>
+            </div>
+
+            <span
+              className={`self-start rounded-full px-4 py-2 text-sm font-bold ${
+                statusStyles[ticket.status] ||
+                "bg-black/10 text-black"
+              }`}
+            >
+              {ticket.status}
+            </span>
+          </div>
         </div>
 
         {/* Ticket */}
-        <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900">
+        <div className="mt-10 overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.07)]">
 
-          {/* Top */}
-          <div className="border-b border-white/10 bg-gradient-to-br from-indigo-950 via-zinc-900 to-zinc-950 p-8 md:p-10">
+          {/* Ticket header */}
+          <div className="relative overflow-hidden bg-[#9ED3DC] p-7 md:p-10">
+            <div className="absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#FEFD99]" />
+            <div className="absolute -bottom-24 right-24 h-44 w-44 rounded-full bg-[#FCB7C7]" />
 
-            <div className="flex flex-col justify-between gap-8 md:flex-row">
-
+            <div className="relative z-10 flex flex-col justify-between gap-7 md:flex-row md:items-end">
               <div>
-                <p className="text-sm text-zinc-500">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-black/50">
                   Ticket number
                 </p>
 
-                <p className="mt-2 text-xl font-semibold text-white">
+                <p className="mt-2 font-mono text-2xl font-black tracking-tight text-black">
                   {ticket.ticket_number}
                 </p>
               </div>
 
-              <span
-                className={`self-start rounded-full px-4 py-2 text-sm font-medium ${
-                  ticket.status === "ACTIVE"
-                    ? "bg-emerald-400/10 text-emerald-300"
-                    : ticket.status === "USED"
-                      ? "bg-blue-400/10 text-blue-300"
-                      : "bg-red-400/10 text-red-300"
-                }`}
-              >
-                {ticket.status}
-              </span>
-
+              <div className="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 backdrop-blur-sm">
+                <p className="text-xs font-bold uppercase tracking-wider text-black/45">
+                  Status
+                </p>
+                <p className="mt-1 text-sm font-black text-black">
+                  {ticket.status}
+                </p>
+              </div>
             </div>
-
           </div>
 
-          {/* Body */}
-          <div className="grid gap-10 p-8 md:grid-cols-[1fr_240px] md:p-10">
+          {/* Ticket body */}
+          <div className="grid gap-10 p-7 md:grid-cols-[1fr_260px] md:p-10">
 
             {/* Details */}
             <div>
-
-              <div className="grid gap-7 sm:grid-cols-2">
+              <div className="grid gap-x-8 gap-y-8 sm:grid-cols-2">
 
                 <div>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                     Event
                   </p>
-
-                  <p className="mt-2 font-medium text-white">
+                  <p className="mt-2 font-bold text-black">
                     {ticket.event.title}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                     Venue
                   </p>
-
-                  <p className="mt-2 font-medium text-white">
+                  <p className="mt-2 font-bold text-black">
                     {ticket.event.venue}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                     Date
                   </p>
-
-                  <p className="mt-2 font-medium text-white">
+                  <p className="mt-2 font-bold text-black">
                     {date}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                     Time
                   </p>
-
-                  <p className="mt-2 font-medium text-white">
+                  <p className="mt-2 font-bold text-black">
                     {time}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                     Section
                   </p>
-
-                  <p className="mt-2 font-medium text-white">
+                  <p className="mt-2 font-bold text-black">
                     {ticket.seat.section}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                     Seat
                   </p>
-
-                  <p className="mt-2 font-medium text-white">
+                  <p className="mt-2 font-bold text-black">
                     {ticket.seat.row}
                     {ticket.seat.seat_number}
                   </p>
@@ -201,23 +219,20 @@ function TicketDetails() {
 
               </div>
 
-              <div className="mt-10 border-t border-white/10 pt-6">
-                <p className="text-sm text-zinc-500">
+              <div className="mt-10 border-t border-black/10 pt-6">
+                <p className="text-xs font-bold uppercase tracking-wider text-black/40">
                   Issued
                 </p>
 
-                <p className="mt-2 text-sm text-zinc-300">
+                <p className="mt-2 text-sm font-medium text-black/60">
                   {new Date(ticket.issued_at).toLocaleString("en-IN")}
                 </p>
               </div>
-
             </div>
 
             {/* QR */}
-            <div className="flex flex-col items-center justify-start">
-
-              <div className="rounded-2xl bg-white p-4">
-
+            <div className="flex flex-col items-center rounded-3xl bg-[#fffdf7] p-5">
+              <div className="rounded-2xl border border-black/10 bg-white p-4 shadow-sm">
                 {ticket.qr_code ? (
                   <img
                     src={ticket.qr_code}
@@ -225,25 +240,27 @@ function TicketDetails() {
                     className="h-48 w-48 object-contain"
                   />
                 ) : (
-                  <div className="flex h-48 w-48 items-center justify-center text-center text-sm text-zinc-500">
+                  <div className="flex h-48 w-48 items-center justify-center text-center text-sm font-medium text-black/40">
                     QR code unavailable
                   </div>
                 )}
-
               </div>
 
-              <p className="mt-4 text-center text-xs text-zinc-500">
-                Scan this QR code at the entrance
+              <p className="mt-4 text-center text-xs font-medium leading-5 text-black/45">
+                Present this QR code at the event entrance.
               </p>
-
             </div>
-
           </div>
 
+          {/* Bottom strip */}
+          <div className="border-t border-black/10 bg-[#FEFD99] px-7 py-4 md:px-10">
+            <p className="text-center text-xs font-bold text-black/65">
+              Please arrive early and keep your ticket accessible.
+            </p>
+          </div>
         </div>
-
       </div>
-    </div>
+    </main>
   );
 }
 

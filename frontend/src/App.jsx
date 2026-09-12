@@ -9,6 +9,8 @@ import { AuthProvider } from "./context/AuthContext";
 
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+import Landing from "./pages/Landing";
 import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Login from "./pages/Login";
@@ -19,31 +21,25 @@ import Checkout from "./pages/Checkout";
 import MyTickets from "./pages/MyTickets";
 import TicketDetails from "./pages/TicketDetails";
 import MyBookings from "./pages/MyBookings";
+import OrganizerDashboard from "./pages/OrganizerDashboard";
+import CreateEvent from "./pages/CreateEvent";
 
 export default function App() {
   return (
     <BrowserRouter>
-
       <AuthProvider>
 
         <Navbar />
 
         <Routes>
 
-          {/* ============================= */}
-          {/* Public Routes                  */}
-          {/* ============================= */}
-
+          {/* Landing */}
           <Route
             path="/"
-            element={
-              <Navigate
-                to="/events"
-                replace
-              />
-            }
+            element={<Landing />}
           />
 
+          {/* Public */}
           <Route
             path="/events"
             element={<Events />}
@@ -73,13 +69,8 @@ export default function App() {
             path="/signup"
             element={<Signup />}
           />
-          
 
-
-          {/* ============================= */}
-          {/* Protected Routes               */}
-          {/* ============================= */}
-
+          {/* Protected */}
           <Route element={<ProtectedRoute />}>
 
             <Route
@@ -102,19 +93,20 @@ export default function App() {
               element={<MyBookings />}
             />
 
+            <Route path="/organizer" element={<OrganizerDashboard />} />
+
+            <Route
+              path="/organizer/events/create"
+              element={<CreateEvent />}
+            />
           </Route>
-          
 
-
-          {/* ============================= */}
-          {/* Fallback                       */}
-          {/* ============================= */}
-
+          {/* Fallback */}
           <Route
             path="*"
             element={
               <Navigate
-                to="/events"
+                to="/"
                 replace
               />
             }
@@ -123,7 +115,6 @@ export default function App() {
         </Routes>
 
       </AuthProvider>
-
     </BrowserRouter>
   );
 }

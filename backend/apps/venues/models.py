@@ -34,10 +34,14 @@ class Venue(models.Model):
         self.country = self.country.strip()
 
         if not self.name:
-            raise ValidationError({"name": "Venue name cannot be empty."})
+            raise ValidationError(
+                {"name": "Venue name cannot be empty."}
+            )
 
         if not self.city:
-            raise ValidationError({"city": "City cannot be empty."})
+            raise ValidationError(
+                {"city": "City cannot be empty."}
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -45,6 +49,7 @@ class Venue(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Section(models.Model):
     venue = models.ForeignKey(
@@ -74,7 +79,9 @@ class Section(models.Model):
         self.name = self.name.strip()
 
         if not self.name:
-            raise ValidationError({"name": "Section name cannot be empty."})
+            raise ValidationError(
+                {"name": "Section name cannot be empty."}
+            )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -82,6 +89,7 @@ class Section(models.Model):
 
     def __str__(self):
         return f"{self.venue.name} - {self.name}"
+
 
 class Seat(models.Model):
     section = models.ForeignKey(
@@ -110,11 +118,16 @@ class Seat(models.Model):
         self.row = self.row.strip().upper()
 
         if not self.row:
-            raise ValidationError({"row": "Row cannot be empty."})
+            raise ValidationError(
+                {"row": "Row cannot be empty."}
+            )
 
         if self.seat_number <= 0:
             raise ValidationError(
-                {"seat_number": "Seat number must be greater than zero."}
+                {
+                    "seat_number":
+                    "Seat number must be greater than zero."
+                }
             )
 
     def save(self, *args, **kwargs):
@@ -122,4 +135,7 @@ class Seat(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.section.name} - {self.row}{self.seat_number}"
+        return (
+            f"{self.section.name} - "
+            f"{self.row}{self.seat_number}"
+        )

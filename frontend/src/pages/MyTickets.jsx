@@ -24,56 +24,86 @@ function MyTickets() {
     fetchTickets();
   }, []);
 
+  const getStatusClasses = (status) => {
+    if (status === "ACTIVE") {
+      return "bg-[#9ED3DC] text-[#171717]";
+    }
+
+    if (status === "USED") {
+      return "bg-[#FEFD99] text-[#171717]";
+    }
+
+    return "bg-[#FCB7C7] text-[#7d3049]";
+  };
+
   return (
-    <div className="min-h-screen bg-[#09090b] px-6 py-12 text-white">
+    <main className="min-h-[calc(100vh-72px)] bg-[#fffdf7] px-6 py-12 text-[#171717]">
       <div className="mx-auto max-w-6xl">
 
         {/* Header */}
         <div className="mb-10">
-          <p className="text-sm font-medium uppercase tracking-widest text-indigo-400">
-            Your tickets
-          </p>
 
-          <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
-            My Tickets
+          <div className="flex items-center gap-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#CA6180]" />
+
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-black/45">
+              EVENTLY / TICKETS
+            </p>
+          </div>
+
+          <h1 className="mt-4 text-5xl font-black tracking-[-0.05em] md:text-6xl">
+            My tickets.
           </h1>
 
-          <p className="mt-4 text-zinc-400">
-            View your confirmed event tickets and QR codes.
+          <p className="mt-4 max-w-xl text-base leading-7 text-black/50">
+            Your confirmed events, seats and QR
+            tickets — all in one place.
           </p>
+
         </div>
 
         {/* Loading */}
         {loading && (
           <div className="flex min-h-64 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-400" />
+            <div className="h-9 w-9 animate-spin rounded-full border-2 border-black/10 border-t-[#CA6180]" />
           </div>
         )}
 
         {/* Error */}
         {!loading && error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-5 text-red-300">
+          <div className="rounded-2xl border border-[#CA6180]/25 bg-[#FCB7C7]/30 p-5 text-sm font-medium text-[#7d3049]">
             {error}
           </div>
         )}
 
         {/* Empty */}
         {!loading && !error && tickets.length === 0 && (
-          <div className="rounded-2xl border border-white/10 bg-zinc-900 p-12 text-center">
-            <p className="text-xl font-medium text-zinc-200">
-              No tickets yet.
-            </p>
+          <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white">
 
-            <p className="mt-2 text-zinc-500">
-              Your tickets will appear here after a successful payment.
-            </p>
+            <div className="bg-[#9ED3DC] p-8 sm:p-12">
 
-            <Link
-              to="/events"
-              className="mt-6 inline-flex rounded-xl bg-white px-6 py-3 font-medium text-black transition hover:bg-zinc-200"
-            >
-              Explore Events
-            </Link>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-black/45">
+                Your ticket wallet
+              </p>
+
+              <h2 className="mt-3 text-3xl font-black">
+                No tickets yet.
+              </h2>
+
+              <p className="mt-3 max-w-md text-sm leading-6 text-black/55">
+                Once you complete a booking,
+                your ticket and QR code will appear here.
+              </p>
+
+              <Link
+                to="/events"
+                className="mt-7 inline-flex rounded-full bg-[#171717] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#CA6180]"
+              >
+                Explore events →
+              </Link>
+
+            </div>
+
           </div>
         )}
 
@@ -81,77 +111,99 @@ function MyTickets() {
         {!loading && !error && tickets.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2">
 
-            {tickets.map((ticket) => (
+            {tickets.map((ticket, index) => (
               <Link
                 key={ticket.id}
                 to={`/tickets/${ticket.id}`}
-                className="group rounded-2xl border border-white/10 bg-zinc-900 p-6 transition hover:border-indigo-400/40 hover:bg-zinc-900/80"
+                className="group overflow-hidden rounded-[1.75rem] border border-black/10 bg-white shadow-[0_12px_40px_rgba(23,23,23,0.04)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(23,23,23,0.09)]"
               >
 
-                <div className="flex items-start justify-between gap-4">
+                {/* Ticket top */}
+                <div
+                  className={`relative overflow-hidden p-7 ${
+                    index % 3 === 0
+                      ? "bg-[#9ED3DC]"
+                      : index % 3 === 1
+                        ? "bg-[#FEFD99]"
+                        : "bg-[#FCB7C7]"
+                  }`}
+                >
 
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-widest text-indigo-400">
-                      Ticket
-                    </p>
+                  <div className="absolute -right-12 -top-16 h-40 w-40 rounded-full bg-white/25 transition duration-500 group-hover:scale-110" />
 
-                    <h2 className="mt-2 text-xl font-semibold text-white">
-                      {ticket.event}
-                    </h2>
-                  </div>
+                  <div className="relative flex items-start justify-between gap-4">
 
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      ticket.status === "ACTIVE"
-                        ? "bg-emerald-400/10 text-emerald-300"
-                        : ticket.status === "USED"
-                          ? "bg-blue-400/10 text-blue-300"
-                          : "bg-red-400/10 text-red-300"
-                    }`}
-                  >
-                    {ticket.status}
-                  </span>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-black/45">
+                        EVENTLY / TICKET
+                      </p>
 
-                </div>
+                      <h2 className="mt-3 max-w-sm text-2xl font-black leading-tight tracking-[-0.03em]">
+                        {ticket.event}
+                      </h2>
+                    </div>
 
-                <div className="mt-6 space-y-4">
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${getStatusClasses(
+                        ticket.status
+                      )}`}
+                    >
+                      {ticket.status}
+                    </span>
 
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      Ticket number
-                    </p>
-
-                    <p className="mt-1 font-medium text-zinc-200">
-                      {ticket.ticket_number}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      Venue
-                    </p>
-
-                    <p className="mt-1 text-zinc-200">
-                      {ticket.venue}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      Seat
-                    </p>
-
-                    <p className="mt-1 text-zinc-200">
-                      {ticket.seat}
-                    </p>
                   </div>
 
                 </div>
 
-                <div className="mt-6 border-t border-white/10 pt-5">
-                  <span className="text-sm font-medium text-indigo-400 transition group-hover:text-indigo-300">
-                    View ticket →
-                  </span>
+                {/* Ticket details */}
+                <div className="p-7">
+
+                  <div className="grid gap-5">
+
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                        Ticket number
+                      </p>
+
+                      <p className="mt-1.5 font-black tracking-wide">
+                        {ticket.ticket_number}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                        Venue
+                      </p>
+
+                      <p className="mt-1.5 font-semibold">
+                        {ticket.venue}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                        Seat
+                      </p>
+
+                      <p className="mt-1.5 font-bold">
+                        {ticket.seat}
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-between border-t border-black/10 pt-5">
+
+                    <span className="text-sm font-bold text-[#CA6180]">
+                      View ticket
+                    </span>
+
+                    <span className="text-lg transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+
+                  </div>
+
                 </div>
 
               </Link>
@@ -161,7 +213,7 @@ function MyTickets() {
         )}
 
       </div>
-    </div>
+    </main>
   );
 }
 

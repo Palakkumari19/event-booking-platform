@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     MyTicketsView,
     TicketDetailView,
+    TicketValidationView,
 )
 
 urlpatterns = [
@@ -10,6 +11,11 @@ urlpatterns = [
         "my-tickets/",
         MyTicketsView.as_view(),
         name="my-tickets",
+    ),
+    path(
+        "validate/",
+        TicketValidationView.as_view(),
+        name="ticket-validate",
     ),
     path(
         "<int:ticket_id>/",

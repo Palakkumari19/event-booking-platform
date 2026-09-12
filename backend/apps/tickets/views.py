@@ -1,4 +1,5 @@
 from django.http import Http404
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,7 +8,9 @@ from .selectors import get_ticket, get_user_tickets
 from .serializers import (
     TicketDetailSerializer,
     TicketListSerializer,
+    TicketValidationSerializer,
 )
+from .services import TicketService
 
 
 class MyTicketsView(APIView):
@@ -49,3 +52,48 @@ class TicketDetailView(APIView):
         )
 
         return Response(serializer.data)
+
+
+class TicketValidationView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        if not request.user.is_staff:
+            return Response(
+                {
+                    "detail": (
+                        "Only staff members can validate tickets."
+                    )
+                },
+                status=403,
+            )
+
+        serializer = TicketValidationSerializer(
+            data=request.data,
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        ticket_number = serializer.validated_data[
+            "ticket_number"
+        ]
+
+        ticket = TicketService.validate_ticket(
+            ticket_number
+        )
+
+        return Response(
+            {
+                "message": "Ticket validated successfully.",
+                "ticket": TicketDetailSerializer(
+                    ticket,
+                    context={
+                        "request": request,
+                    },
+                ).data,
+            }
+        )

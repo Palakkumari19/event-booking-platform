@@ -92,41 +92,48 @@ function MyBookings() {
   const getStatusClasses = (status) => {
     switch (status) {
       case "CONFIRMED":
-        return "bg-emerald-400/10 text-emerald-300";
+        return "bg-[#9ED3DC] text-[#171717]";
 
       case "PENDING":
-        return "bg-yellow-400/10 text-yellow-300";
+        return "bg-[#FEFD99] text-[#171717]";
 
       case "CANCELLED":
-        return "bg-red-400/10 text-red-300";
+        return "bg-[#FCB7C7] text-[#7d3049]";
 
       default:
-        return "bg-zinc-400/10 text-zinc-300";
+        return "bg-black/10 text-black/50";
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] px-6 py-12 text-white">
+    <main className="min-h-[calc(100vh-72px)] bg-[#fffdf7] px-6 py-12 text-[#171717]">
       <div className="mx-auto max-w-6xl">
 
         {/* Header */}
         <div className="mb-10">
-          <p className="text-sm font-medium uppercase tracking-widest text-indigo-400">
-            Your bookings
-          </p>
 
-          <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
-            My Bookings
+          <div className="flex items-center gap-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#CA6180]" />
+
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-black/45">
+              EVENTLY / BOOKINGS
+            </p>
+          </div>
+
+          <h1 className="mt-4 text-5xl font-black tracking-[-0.05em] md:text-6xl">
+            My bookings.
           </h1>
 
-          <p className="mt-4 text-zinc-400">
-            Manage your event bookings and reservations.
+          <p className="mt-4 max-w-xl text-base leading-7 text-black/50">
+            Keep track of your reservations,
+            payments and upcoming experiences.
           </p>
+
         </div>
 
         {/* Error */}
         {!loading && error && (
-          <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-5 text-red-300">
+          <div className="mb-6 rounded-2xl border border-[#CA6180]/25 bg-[#FCB7C7]/30 p-5 text-sm font-medium text-[#7d3049]">
             {error}
           </div>
         )}
@@ -134,27 +141,36 @@ function MyBookings() {
         {/* Loading */}
         {loading && (
           <div className="flex min-h-64 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-400" />
+            <div className="h-9 w-9 animate-spin rounded-full border-2 border-black/10 border-t-[#CA6180]" />
           </div>
         )}
 
         {/* Empty */}
         {!loading && bookings.length === 0 && !error && (
-          <div className="rounded-2xl border border-white/10 bg-zinc-900 p-12 text-center">
-            <p className="text-xl font-medium text-zinc-200">
-              No bookings yet.
-            </p>
+          <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white">
 
-            <p className="mt-2 text-zinc-500">
-              Your event bookings will appear here.
-            </p>
+            <div className="bg-[#FEFD99] p-8 sm:p-12">
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-black/45">
+                Nothing booked yet
+              </p>
 
-            <Link
-              to="/events"
-              className="mt-6 inline-flex rounded-xl bg-white px-6 py-3 font-medium text-black transition hover:bg-zinc-200"
-            >
-              Explore Events
-            </Link>
+              <h2 className="mt-3 text-3xl font-black">
+                Your next plan starts here.
+              </h2>
+
+              <p className="mt-3 max-w-md text-sm leading-6 text-black/55">
+                Explore upcoming events and find
+                something worth going to.
+              </p>
+
+              <Link
+                to="/events"
+                className="mt-7 inline-flex rounded-full bg-[#171717] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#CA6180]"
+              >
+                Explore events →
+              </Link>
+            </div>
+
           </div>
         )}
 
@@ -162,142 +178,157 @@ function MyBookings() {
         {!loading && bookings.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2">
 
-            {bookings.map((booking) => (
-              <div
+            {bookings.map((booking, index) => (
+              <article
                 key={booking.id}
-                className="rounded-2xl border border-white/10 bg-zinc-900 p-6 transition hover:border-white/20"
+                className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white shadow-[0_12px_40px_rgba(23,23,23,0.04)] transition hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(23,23,23,0.08)]"
               >
 
-                {/* Top section */}
-                <div className="flex items-start justify-between gap-4">
+                {/* Colour header */}
+                <div
+                  className={`p-6 ${
+                    index % 3 === 0
+                      ? "bg-[#9ED3DC]"
+                      : index % 3 === 1
+                        ? "bg-[#FCB7C7]"
+                        : "bg-[#FEFD99]"
+                  }`}
+                >
 
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-widest text-indigo-400">
-                      Booking #{booking.id}
-                    </p>
-
-                    <h2 className="mt-2 text-xl font-semibold text-white">
-                      {booking.event?.title ||
-                        "Event"}
-                    </h2>
-                  </div>
-
-                  <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
-                      booking.status
-                    )}`}
-                  >
-                    {booking.status}
-                  </span>
-
-                </div>
-
-                {/* Booking information */}
-                <div className="mt-6 space-y-4">
-
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      Venue
-                    </p>
-
-                    <p className="mt-1 text-zinc-200">
-                      {booking.venue}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start justify-between gap-4">
 
                     <div>
-                      <p className="text-sm text-zinc-500">
-                        Seat
+                      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-black/45">
+                        Booking #{booking.id}
                       </p>
 
-                      <p className="mt-1 font-medium text-zinc-200">
-                        {booking.seat}
-                      </p>
+                      <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.03em]">
+                        {booking.event?.title ||
+                          "Event"}
+                      </h2>
                     </div>
 
-                    <div>
-                      <p className="text-sm text-zinc-500">
-                        Price
-                      </p>
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${getStatusClasses(
+                        booking.status
+                      )}`}
+                    >
+                      {booking.status}
+                    </span>
 
-                      <p className="mt-1 font-medium text-zinc-200">
-                        ₹{booking.price}
-                      </p>
-                    </div>
-
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      Booked on
-                    </p>
-
-                    <p className="mt-1 text-zinc-200">
-                      {formatDate(
-                        booking.booked_at
-                      )}
-                    </p>
                   </div>
 
                 </div>
 
-                {/* Actions */}
-                <div className="mt-6 flex flex-wrap gap-3 border-t border-white/10 pt-5">
+                {/* Details */}
+                <div className="p-6">
 
-                  {booking.status ===
-                    "CONFIRMED" && (
-                    <Link
-                      to="/tickets"
-                      className="rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200"
-                    >
-                      View Ticket
-                    </Link>
-                  )}
+                  <div className="space-y-5">
 
-                  {booking.status ===
-                    "PENDING" && (
-                    <Link
-                      to="/checkout"
-                      className="rounded-xl bg-white px-5 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200"
-                    >
-                      Continue Payment
-                    </Link>
-                  )}
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                        Venue
+                      </p>
 
-                  {booking.status !==
-                    "CANCELLED" && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleCancel(
+                      <p className="mt-1.5 font-semibold">
+                        {booking.venue}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-5">
+
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                          Seat
+                        </p>
+
+                        <p className="mt-1.5 font-bold">
+                          {booking.seat}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                          Price
+                        </p>
+
+                        <p className="mt-1.5 font-bold">
+                          ₹{booking.price}
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-black/35">
+                        Booked on
+                      </p>
+
+                      <p className="mt-1.5 text-sm font-medium text-black/60">
+                        {formatDate(
+                          booking.booked_at
+                        )}
+                      </p>
+                    </div>
+
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-6 flex flex-wrap gap-3 border-t border-black/10 pt-5">
+
+                    {booking.status ===
+                      "CONFIRMED" && (
+                      <Link
+                        to="/tickets"
+                        className="rounded-full bg-[#171717] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#CA6180]"
+                      >
+                        View ticket →
+                      </Link>
+                    )}
+
+                    {booking.status ===
+                      "PENDING" && (
+                      <Link
+                        to="/checkout"
+                        className="rounded-full bg-[#171717] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#CA6180]"
+                      >
+                        Continue payment →
+                      </Link>
+                    )}
+
+                    {booking.status !==
+                      "CANCELLED" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCancel(
+                            booking.id
+                          )
+                        }
+                        disabled={
+                          cancellingId ===
                           booking.id
-                        )
-                      }
-                      disabled={
-                        cancellingId ===
+                        }
+                        className="rounded-full border border-black/10 px-5 py-2.5 text-sm font-semibold text-black/55 transition hover:border-[#CA6180]/30 hover:bg-[#FCB7C7]/25 hover:text-[#7d3049] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {cancellingId ===
                         booking.id
-                      }
-                      className="rounded-xl border border-red-500/30 px-5 py-2.5 text-sm font-medium text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {cancellingId ===
-                      booking.id
-                        ? "Cancelling..."
-                        : "Cancel Booking"}
-                    </button>
-                  )}
+                          ? "Cancelling..."
+                          : "Cancel booking"}
+                      </button>
+                    )}
+
+                  </div>
 
                 </div>
-
-              </div>
+              </article>
             ))}
 
           </div>
         )}
 
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -9,7 +9,7 @@ from apps.venues.models import Seat
 
 from .models import Booking
 from .redis import SeatHoldCache
-
+from apps.notifications.services import NotificationService
 
 class BookingService:
 
@@ -25,10 +25,6 @@ class BookingService:
         print("USER:", user.id)
         print("EVENT:", event_id)
         print("SEAT:", seat_id)
-
-        # --------------------------------------------------------
-        # Get event
-        # --------------------------------------------------------
 
         try:
             event = (
@@ -46,10 +42,6 @@ class BookingService:
                 "Event not found."
             )
 
-        # --------------------------------------------------------
-        # Check booking window
-        # --------------------------------------------------------
-
         now = timezone.now()
 
         print("CURRENT TIME:", now)
@@ -66,10 +58,6 @@ class BookingService:
                 "Booking window has closed."
             )
 
-        # --------------------------------------------------------
-        # Get seat
-        # --------------------------------------------------------
-
         try:
             seat = (
                 Seat.objects
@@ -85,18 +73,10 @@ class BookingService:
                 "Seat not found."
             )
 
-        # --------------------------------------------------------
-        # Verify seat belongs to event venue
-        # --------------------------------------------------------
-
         if seat.section.venue_id != event.venue_id:
             raise ValidationError(
                 "Selected seat does not belong to this event."
             )
-
-        # --------------------------------------------------------
-        # Verify Redis hold
-        # --------------------------------------------------------
 
         holder = SeatHoldCache.holder(
             event.id,
@@ -116,10 +96,6 @@ class BookingService:
                 "Seat is currently held by another user."
             )
 
-        # --------------------------------------------------------
-        # Check existing booking
-        # --------------------------------------------------------
-
         if Booking.objects.filter(
             event=event,
             seat=seat,
@@ -138,10 +114,6 @@ class BookingService:
                 "Seat is already booked."
             )
 
-        # --------------------------------------------------------
-        # Create booking
-        # --------------------------------------------------------
-
         try:
 
             booking = Booking.objects.create(
@@ -156,10 +128,6 @@ class BookingService:
             raise ValidationError(
                 "Seat has just been booked by another user."
             )
-
-        # --------------------------------------------------------
-        # Release Redis hold
-        # --------------------------------------------------------
 
         SeatHoldCache.release_seat(
             event.id,
@@ -221,15 +189,6 @@ class BookingService:
         # --------------------------------------------------------
         # Handle payment/refund
         # --------------------------------------------------------
-        #
-        # Import locally to avoid circular imports:
-        #
-        # BookingService → PaymentService
-        # PaymentService → BookingService
-        #
-        # Only confirmed bookings with a successful payment
-        # require a Razorpay refund.
-        # --------------------------------------------------------
 
         if booking.status == Booking.Status.CONFIRMED:
 
@@ -254,7 +213,6 @@ class BookingService:
                     )
 
                 elif payment.status == Payment.Status.REFUNDED:
-                    # Already refunded.
                     pass
 
         # --------------------------------------------------------
@@ -265,6 +223,20 @@ class BookingService:
 
         booking.save(
             update_fields=["status"]
+        )
+
+        NotificationService.booking_cancelled(booking)
+
+        # --------------------------------------------------------
+        # Cancel associated ticket
+        # --------------------------------------------------------
+
+        from apps.tickets.models import Ticket
+
+        Ticket.objects.filter(
+            booking=booking,
+        ).update(
+            status=Ticket.Status.CANCELLED,
         )
 
         # --------------------------------------------------------
@@ -285,12 +257,6 @@ class BookingService:
     @staticmethod
     @transaction.atomic
     def confirm_booking(booking):
-        """
-        Confirm a booking only if it is still pending.
-
-        A cancelled booking can never be confirmed again, even if an
-        old payment attempt later reports success.
-        """
 
         booking = (
             Booking.objects
@@ -313,6 +279,8 @@ class BookingService:
             update_fields=["status"]
         )
 
+        NotificationService.booking_confirmed(booking)
+
         return booking
 
     # ============================================================
@@ -321,10 +289,6 @@ class BookingService:
 
     @staticmethod
     def hold_seat(user, event_id, seat_id):
-
-        # --------------------------------------------------------
-        # Get event
-        # --------------------------------------------------------
 
         try:
             event = Event.objects.get(
@@ -337,10 +301,6 @@ class BookingService:
                 "Event not found."
             )
 
-        # --------------------------------------------------------
-        # Check booking window
-        # --------------------------------------------------------
-
         now = timezone.now()
 
         if now < event.booking_start:
@@ -352,10 +312,6 @@ class BookingService:
             raise ValidationError(
                 "Booking window has closed."
             )
-
-        # --------------------------------------------------------
-        # Get seat
-        # --------------------------------------------------------
 
         try:
             seat = (
@@ -372,18 +328,10 @@ class BookingService:
                 "Seat not found."
             )
 
-        # --------------------------------------------------------
-        # Verify venue
-        # --------------------------------------------------------
-
         if seat.section.venue_id != event.venue_id:
             raise ValidationError(
                 "Seat does not belong to this event."
             )
-
-        # --------------------------------------------------------
-        # Check existing booking
-        # --------------------------------------------------------
 
         if Booking.objects.filter(
             event=event,
@@ -397,10 +345,6 @@ class BookingService:
             raise ValidationError(
                 "Seat is already booked."
             )
-
-        # --------------------------------------------------------
-        # Check existing Redis hold
-        # --------------------------------------------------------
 
         existing_holder = SeatHoldCache.holder(
             event.id,
@@ -422,18 +366,10 @@ class BookingService:
                 "Seat is currently held by another user."
             )
 
-        # --------------------------------------------------------
-        # Maximum 4 active holds per user
-        # --------------------------------------------------------
-
         if SeatHoldCache.held_by_user(user.id) >= 4:
             raise ValidationError(
                 "Maximum of 4 seats can be held simultaneously."
             )
-
-        # --------------------------------------------------------
-        # Create Redis hold
-        # --------------------------------------------------------
 
         SeatHoldCache.hold_seat(
             event.id,
