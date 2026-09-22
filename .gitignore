@@ -31,3 +31,7 @@ media/
 *.rdb
 # Celery
 celerybeat-schedule*
+
+
+# Redis
+*.rdb
