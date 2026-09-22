@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
 from .models import Event, EventSection
-from apps.venues.models import Seat
+from apps.venues.models import Venue, Seat
 
 
 class EventListSerializer(serializers.ModelSerializer):
-    venue = serializers.CharField(source="venue.name", read_only=True)
+    venue = serializers.CharField(
+        source="venue.name",
+        read_only=True,
+    )
 
     class Meta:
         model = Event
@@ -26,8 +29,12 @@ class VenueSerializer(serializers.Serializer):
 
 
 class EventSectionSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source="section.id")
-    name = serializers.CharField(source="section.name")
+    id = serializers.IntegerField(
+        source="section.id"
+    )
+    name = serializers.CharField(
+        source="section.name"
+    )
 
     class Meta:
         model = EventSection
@@ -61,17 +68,16 @@ class EventDetailSerializer(serializers.ModelSerializer):
             "sections",
         )
 
-class SeatStatusSerializer(serializers.ModelSerializer):
 
+class SeatStatusSerializer(serializers.ModelSerializer):
     section = serializers.CharField(
-        source="section.name",
+        source="section.name"
     )
 
     status = serializers.SerializerMethodField()
 
     class Meta:
         model = Seat
-
         fields = (
             "id",
             "section",
@@ -81,13 +87,14 @@ class SeatStatusSerializer(serializers.ModelSerializer):
         )
 
     def get_status(self, obj):
-
         statuses = self.context["statuses"]
+        return statuses.get(obj.id, "AVAILABLE")
 
-        return statuses.get(
-            obj.id,
-            "AVAILABLE",
-        )
+
+# =========================================================
+# ORGANIZER SERIALIZERS
+# =========================================================
+
 
 class OrganizerEventSectionSerializer(serializers.Serializer):
     section = serializers.IntegerField()
@@ -105,7 +112,6 @@ class OrganizerEventCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-
         fields = (
             "title",
             "description",
@@ -121,24 +127,19 @@ class OrganizerEventCreateSerializer(serializers.ModelSerializer):
         sections = attrs.get("sections", [])
 
         if not sections:
-            raise serializers.ValidationError(
-                {
-                    "sections": (
-                        "At least one ticket section is required."
-                    )
-                }
-            )
+            raise serializers.ValidationError({
+                "sections": "At least one ticket section is required."
+            })
 
-        section_ids = [item["section"] for item in sections]
+        section_ids = [
+            item["section"]
+            for item in sections
+        ]
 
         if len(section_ids) != len(set(section_ids)):
-            raise serializers.ValidationError(
-                {
-                    "sections": (
-                        "A section cannot be added more than once."
-                    )
-                }
-            )
+            raise serializers.ValidationError({
+                "sections": "A section cannot be added more than once."
+            })
 
         venue = attrs["venue"]
 
@@ -156,14 +157,12 @@ class OrganizerEventCreateSerializer(serializers.ModelSerializer):
         ]
 
         if invalid_sections:
-            raise serializers.ValidationError(
-                {
-                    "sections": (
-                        "One or more selected sections "
-                        "do not belong to this venue."
-                    )
-                }
-            )
+            raise serializers.ValidationError({
+                "sections": (
+                    "One or more selected sections "
+                    "do not belong to this venue."
+                )
+            })
 
         return attrs
 
@@ -178,16 +177,14 @@ class OrganizerEventCreateSerializer(serializers.ModelSerializer):
             **validated_data,
         )
 
-        EventSection.objects.bulk_create(
-            [
-                EventSection(
-                    event=event,
-                    section_id=section_data["section"],
-                    price=section_data["price"],
-                )
-                for section_data in sections_data
-            ]
-        )
+        EventSection.objects.bulk_create([
+            EventSection(
+                event=event,
+                section_id=section_data["section"],
+                price=section_data["price"],
+            )
+            for section_data in sections_data
+        ])
 
         return event
 
@@ -204,7 +201,6 @@ class OrganizerEventListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-
         fields = (
             "id",
             "title",
@@ -216,3 +212,127 @@ class OrganizerEventListSerializer(serializers.ModelSerializer):
             "status",
             "booking_count",
         )
+
+
+# =========================================================
+# ORGANIZER EVENT DETAIL
+# =========================================================
+
+
+class OrganizerEventDetailSerializer(serializers.ModelSerializer):
+    venue = VenueSerializer(read_only=True)
+
+    sections = EventSectionSerializer(
+        source="event_sections",
+        many=True,
+        read_only=True,
+    )
+
+    class Meta:
+        model = Event
+        fields = (
+            "id",
+            "title",
+            "description",
+            "venue",
+            "start_time",
+            "end_time",
+            "booking_start",
+            "booking_end",
+            "status",
+            "sections",
+        )
+
+
+# =========================================================
+# ORGANIZER EVENT UPDATE
+# =========================================================
+
+
+class OrganizerEventUpdateSerializer(serializers.ModelSerializer):
+    sections = OrganizerEventSectionSerializer(
+        many=True,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Event
+        fields = (
+            "title",
+            "description",
+            "venue",
+            "start_time",
+            "end_time",
+            "booking_start",
+            "booking_end",
+            "sections",
+        )
+
+    def validate(self, attrs):
+        sections = attrs.get("sections", [])
+
+        if not sections:
+            raise serializers.ValidationError({
+                "sections": "At least one ticket section is required."
+            })
+
+        section_ids = [
+            item["section"]
+            for item in sections
+        ]
+
+        if len(section_ids) != len(set(section_ids)):
+            raise serializers.ValidationError({
+                "sections": "A section cannot be added more than once."
+            })
+
+        venue = attrs["venue"]
+
+        venue_section_ids = set(
+            venue.sections.values_list(
+                "id",
+                flat=True,
+            )
+        )
+
+        invalid_sections = [
+            section_id
+            for section_id in section_ids
+            if section_id not in venue_section_ids
+        ]
+
+        if invalid_sections:
+            raise serializers.ValidationError({
+                "sections": (
+                    "One or more selected sections "
+                    "do not belong to this venue."
+                )
+            })
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        sections_data = validated_data.pop(
+            "sections",
+            [],
+        )
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        # Replace the event's ticket sections with
+        # the current selections from the organizer.
+        instance.event_sections.all().delete()
+
+        EventSection.objects.bulk_create([
+            EventSection(
+                event=instance,
+                section_id=section_data["section"],
+                price=section_data["price"],
+            )
+            for section_data in sections_data
+        ])
+
+        return instance

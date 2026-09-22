@@ -55,3 +55,39 @@ export const createOrganizerEvent = async (eventData) => {
 
   return response.data;
 };
+
+export const getOrganizerEvent = async (eventId) => {
+  const response = await apiClient.get(
+    `/events/organizer/${eventId}/`
+  );
+
+  return response.data;
+};
+
+export const updateOrganizerEvent = async (
+  eventId,
+  eventData
+) => {
+  const response = await apiClient.put(
+    `/events/organizer/${eventId}/`,
+    eventData
+  );
+
+  return response.data;
+};
+
+export const publishOrganizerEvent = async (eventId) => {
+  const response = await apiClient.patch(
+    `/events/organizer/${eventId}/publish/`
+  );
+
+  return response.data;
+};
+
+export const cancelOrganizerEvent = async (eventId) => {
+  const response = await apiClient.patch(
+    `/events/organizer/${eventId}/cancel/`
+  );
+
+  return response.data;
+};

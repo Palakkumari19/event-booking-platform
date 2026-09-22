@@ -1,10 +1,8 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.shortcuts import get_object_or_404
 
-from django.db.models import Count
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,12 +13,14 @@ from .serializers import (
     SeatStatusSerializer,
     OrganizerEventCreateSerializer,
     OrganizerEventListSerializer,
+    OrganizerEventDetailSerializer,
+    OrganizerEventUpdateSerializer,
 )
+from .permissions import IsOrganizer
 
 from apps.bookings.models import Booking
 from apps.bookings.redis import SeatHoldCache
 from apps.venues.models import Seat
-from .permissions import IsOrganizer
 
 
 class EventListView(generics.ListAPIView):
@@ -29,13 +29,11 @@ class EventListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = (
-            Event.objects.filter(
-                status=Event.Status.PUBLISHED,
-            )
+            Event.objects
+            .filter(status=Event.Status.PUBLISHED)
             .select_related("venue")
         )
 
-        # Search by event title or description.
         search = self.request.query_params.get("search")
 
         if search:
@@ -44,7 +42,6 @@ class EventListView(generics.ListAPIView):
                 | Q(description__icontains=search)
             )
 
-        # Filter by venue name.
         venue = self.request.query_params.get("venue")
 
         if venue:
@@ -52,7 +49,6 @@ class EventListView(generics.ListAPIView):
                 venue__name__icontains=venue
             )
 
-        # Show only events that haven't started yet.
         upcoming = self.request.query_params.get("upcoming")
 
         if upcoming and upcoming.lower() == "true":
@@ -62,7 +58,6 @@ class EventListView(generics.ListAPIView):
                 start_time__gte=timezone.now()
             )
 
-        # Sorting.
         ordering = self.request.query_params.get(
             "ordering",
             "start_time",
@@ -89,9 +84,8 @@ class EventDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return (
-            Event.objects.filter(
-                status=Event.Status.PUBLISHED,
-            )
+            Event.objects
+            .filter(status=Event.Status.PUBLISHED)
             .select_related("venue")
             .prefetch_related(
                 "event_sections",
@@ -101,11 +95,9 @@ class EventDetailView(generics.RetrieveAPIView):
 
 
 class EventSeatListView(APIView):
-
     permission_classes = [AllowAny]
 
     def get(self, request, event_id):
-
         event = get_object_or_404(
             Event,
             id=event_id,
@@ -113,7 +105,8 @@ class EventSeatListView(APIView):
         )
 
         seats = (
-            Seat.objects.filter(
+            Seat.objects
+            .filter(
                 section__venue=event.venue,
                 is_active=True,
             )
@@ -139,7 +132,6 @@ class EventSeatListView(APIView):
             statuses[booking.seat_id] = "BOOKED"
 
         for seat in seats:
-
             if (
                 seat.id not in statuses
                 and SeatHoldCache.is_held(
@@ -159,6 +151,12 @@ class EventSeatListView(APIView):
 
         return Response(serializer.data)
 
+
+# =========================================================
+# ORGANIZER
+# =========================================================
+
+
 class OrganizerEventListView(generics.ListAPIView):
     serializer_class = OrganizerEventListSerializer
     permission_classes = [
@@ -168,9 +166,8 @@ class OrganizerEventListView(generics.ListAPIView):
 
     def get_queryset(self):
         return (
-            Event.objects.filter(
-                organizer=self.request.user,
-            )
+            Event.objects
+            .filter(organizer=self.request.user)
             .select_related("venue")
             .annotate(
                 booking_count=Count(
@@ -190,17 +187,30 @@ class OrganizerEventCreateView(generics.CreateAPIView):
     ]
 
 
-class OrganizerEventDetailView(generics.RetrieveUpdateAPIView):
-    serializer_class = OrganizerEventCreateSerializer
+class OrganizerEventDetailView(
+    generics.RetrieveUpdateAPIView
+):
     permission_classes = [
         IsAuthenticated,
         IsOrganizer,
     ]
 
     def get_queryset(self):
-        return Event.objects.filter(
-            organizer=self.request.user,
+        return (
+            Event.objects
+            .filter(organizer=self.request.user)
+            .select_related("venue")
+            .prefetch_related(
+                "event_sections",
+                "event_sections__section",
+            )
         )
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return OrganizerEventDetailSerializer
+
+        return OrganizerEventUpdateSerializer
 
 
 class OrganizerPublishEventView(APIView):
@@ -227,7 +237,13 @@ class OrganizerPublishEventView(APIView):
             )
 
         event.status = Event.Status.PUBLISHED
-        event.save(update_fields=["status", "updated_at"])
+
+        event.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
 
         return Response(
             {
@@ -270,6 +286,7 @@ class OrganizerCancelEventView(APIView):
             )
 
         event.status = Event.Status.CANCELLED
+
         event.save(
             update_fields=[
                 "status",
