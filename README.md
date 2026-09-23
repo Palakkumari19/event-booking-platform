@@ -1,4 +1,3 @@
-````markdown
 # 🎟️ Event Booking Platform
 
 A full-stack event booking platform where users can discover events, reserve seats, make payments, and receive digital tickets with QR codes.
@@ -50,46 +49,27 @@ Payment Verification
 Booking Confirmed
      ↓
 QR Ticket Generated
-````
 
-### 🔒 Concurrency-Safe Booking
-
+🔒 Concurrency-Safe Booking
 Redis temporarily locks a selected seat during checkout.
-
 If another user tries to select the same seat while it is locked, the seat remains unavailable until the lock expires or the booking is completed.
-
-This was tested using **multiple browser sessions** to verify that the same seat cannot be acquired concurrently.
-
----
-
-## 👥 User Roles
-
-**Attendee**
-
-* Browse and search events
-* Select seats
-* Book tickets
-* Make payments
-* View bookings and tickets
-
-**Organizer**
-
-* Create and manage events
-* Configure ticket sections and pricing
-* Publish or cancel events
-* View organizer dashboard
-
-**Admin**
-
-* Administrative access through Django
-
----
-
-## 🚀 Run Locally
-
-### Backend
-
-```bash
+This was tested using multiple browser sessions to verify that the same seat cannot be acquired concurrently.
+👥 User Roles
+Attendee
+Browse and search events
+Select seats
+Book tickets
+Make payments
+View bookings and tickets
+Organizer
+Create and manage events
+Configure ticket sections and pricing
+Publish or cancel events
+View organizer dashboard
+Admin
+Administrative access through Django
+🚀 Run Locally
+Backend
 cd backend
 
 python3 -m venv venv
@@ -98,35 +78,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
-```
-
-### Frontend
-
-```bash
+Frontend
 cd frontend
 
 npm install
 npm run dev
-```
-
 Make sure PostgreSQL and Redis are running and configure your environment variables in:
-
-```text
 backend/.env
-```
-
 For Celery:
-
-```bash
 cd backend
 celery -A config worker --loglevel=info
-```
-
----
-
-## 📁 Project Structure
-
-```text
+📁 Project Structure
 EventBookingPlatform/
 ├── backend/
 │   ├── apps/
@@ -147,29 +109,15 @@ EventBookingPlatform/
 │       └── pages/
 │
 └── docs/
-```
-
----
-
-## 🧪 Tested End-to-End
-
+🧪 Tested End-to-End
 The main application flows have been tested locally, including:
-
-* Authentication & role-based access
-* Event creation and publishing
-* Seat selection and Redis locking
-* Concurrent seat booking
-* Payment and booking confirmation
-* Ticket and QR generation
-* Ticket validation
-* Organizer event management
-
----
-
-## 👤 Author
-
-**Palak Kumari**
-
-[GitHub](https://github.com/Palakkumari19)
-
-```
+Authentication & role-based access
+Event creation and publishing
+Seat selection and Redis locking
+Concurrent seat booking
+Payment and booking confirmation
+Ticket and QR generation
+Ticket validation
+Organizer event management
+👤 Author
+Palak Kumari
